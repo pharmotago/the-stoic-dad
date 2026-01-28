@@ -1,0 +1,26 @@
+import { Module } from "@/lib/schemas";
+
+export const module5: Module = {
+    id: 5,
+    title: "The View From Above",
+    summary: "The optical illusion of stress.",
+    isLocked: true,
+    content: {
+        full_lesson_content: "### PART 1: THE THEORY\n#### The Optical Illusion of Stress\n\nMarcus Aurelius, the Emperor of Rome, commanded armies and ruled the known world. He faced plagues, betrayals, and wars. Yet, in his private journals (*Meditations*), he frequently practiced a mental exercise known as \"The View From Above.\"\n\nHe would visualize the earth from the stars. He would see armies as ants fighting over a crumb. He would see the lifespan of a man as a flash of lightning in the night.\n\nWhy? Because stress is a function of proximity.\n\n#### The Neuroscience of Tunnel Vision\nWhen you are stressed, your brain engages the Sympathetic Nervous System (Fight or Flight). Physiologically, your pupils dilate, but your visual field narrows. This is \"Tunnel Vision.\" Your brain focuses 100% of its resources on the immediate threat.\n\nIn the wild, the threat is a tiger. In the suburbs, the \"threat\" is a toddler who spilled blue paint on a beige carpet.\n\nYour brain tricks you into believing this spilled paint is a life-or-death crisis. It blocks out all context—the fact that you are healthy, employed, and your children are alive. You become trapped in the microscope.\n\n#### Cortisol vs. Context\nThe Stoic Dad uses \"The View From Above\" to force the brain to zoom out. This is not just philosophy; it is a physiological reset. By widening your mental aperture, you signal to your Amygdala that the \"threat\" is insignificant.\n\nWhen you zoom out, you realize that a messy house is not a crisis; it is evidence of life. A loud house is not a headache; it is a luxury denied to the infertile and the lonely. The chaos is a season, and the season is short.\n\n### PART 2: THE WAR STORY\n#### The Witching Hour\n\n**The Scene:** It is 6:00 PM on a Wednesday. You just walked in the door. The house is vibrating with tension. The baby is colicky and screaming. The 4-year-old is chasing the dog with a plastic sword. Dinner is bubbling over on the stove. Your wife looks at you with eyes that say, \"I am drowning.\" The sensory overload hits you like a physical punch.\n\n**The Tunnel Vision:** You feel the walls closing in. The noise is like a drill in your ear. You focus on the problems. You focus on the spilled dog food. You focus on the crying. You snap. You yell, \"EVERYONE QUIET DOWN!\" You slam a cabinet. You have added your own chaos to the fire.\n\n**The Stoic Pivot:** The Stoic Dad feels the constriction. He recognizes the Tunnel. He closes his eyes for two seconds. He zooms out.\n\nHe sees the roof of his house. He sees the street. He sees the city lights. He sees the curve of the Earth spinning in a silent, dark void. He realizes that on this pale blue dot, this chaotic kitchen is a microscopic speck of warmth and life. He realizes that in 30 years, this house will be silent, and he will give anything to hear this noise again.\n\nHe opens his eyes. He doesn't yell. He walks to his wife, touches her shoulder, and starts doing the dishes.",
+        scripts: "### PART 3: THE TACTICAL SCRIPTS\n\n**1. The De-Escalation Script (To Partner)**\nUse this when your partner is red-lining.\n> \"Hey. Look at me. We are in the trenches right now, but nobody is bleeding. Go take 5 minutes in the bedroom. I have the perimeter.\"\n\n**2. The \"Cosmic\" Script (To Child)**\nUse this to interrupt a meltdown with awe.\n> \"Stop for a second. Look out the window at that star. That is a giant ball of fire a million miles away. Compared to that star, this problem is smaller than a piece of dust. Let's sweep the dust away.\"\n\n**3. The Internal Mantra**\nThe universal reset button.\n> \"This too shall pass. The noise is proof of life. Be grateful for the chaos, for the silence is coming all too soon.\"",
+        challenge: "### PART 4: THE PROTOCOL\n**The 10-Year Zoom**\n\nWhen you feel the \"Red Mist\" or the \"Tunnel Vision\" taking over, execute this 60-second visualization before you open your mouth.\n\n**Second 0-10 (The Room):**\nNotice the room. The mess. The noise. Acknowledge it.\n\n**Second 10-20 (The Roof):**\nImagine floating above your house. See your family as heat signatures inside.\n\n**Second 20-40 (The Timeline):**\nFast forward 10 years. The toys are gone. The kids are teenagers or gone. The house is clean and quiet. You are older.\n\n**Second 40-50 (The Return):**\nZoom back into your body. Bring the gratitude of that future, older self back to this moment.\n\n**Second 50-60 (The Action):**\nOpen your eyes. Smile. Engage.",
+        questions: [
+            {
+                question: "How does 'The View From Above' reduce stress?",
+                options: [
+                    "It forces the brain to zoom out and see context",
+                    "It fixes the problem immediately",
+                    "It ignores the problem",
+                    "It makes you feel superior"
+                ],
+                correctAnswer: 0,
+                explanation: "Zooming out breaks 'Tunnel Vision' and signals to the Amygdala that the threat is insignificant."
+            }
+        ]
+    }
+};
