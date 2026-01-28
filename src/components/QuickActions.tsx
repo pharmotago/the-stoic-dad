@@ -1,20 +1,45 @@
 import React from 'react';
-import { BookText, Shield, BarChart3, Download, RefreshCw } from 'lucide-react';
+import { BookText, Shield, BarChart3, Download, RefreshCw, Search, Users } from 'lucide-react';
 
 interface QuickActionsProps {
     onOpenEmergency: () => void;
     onOpenStats: () => void;
     onExportJournal: () => void;
     onResetProgress: () => void;
+    onOpenSearch: () => void;
+    onOpenCommunity: () => void;
 }
 
 export function QuickActions({
     onOpenEmergency,
     onOpenStats,
     onExportJournal,
-    onResetProgress
+    onResetProgress,
+    onOpenSearch,
+    onOpenCommunity
 }: QuickActionsProps) {
     const actions = [
+        {
+            id: 'search',
+            label: 'Search',
+            description: 'Find lessons',
+            icon: Search,
+            onClick: onOpenSearch,
+            color: 'text-emerald-500',
+            bgColor: 'bg-emerald-500/10',
+            borderColor: 'border-emerald-500/30'
+        },
+        {
+            id: 'community',
+            label: 'Community',
+            description: 'Leaderboard',
+            icon: Users,
+            onClick: onOpenCommunity,
+            color: 'text-amber-500',
+            bgColor: 'bg-amber-500/10',
+            borderColor: 'border-amber-500/30'
+        },
+
         {
             id: 'emergency',
             label: 'Emergency',

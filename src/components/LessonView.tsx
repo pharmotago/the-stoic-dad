@@ -31,7 +31,7 @@ export function LessonView({ module, onBack, onTakeQuiz }: LessonViewProps) {
                 </div>
 
                 <div className="prose prose-invert prose-lg max-w-none mb-8">
-                    <div className="whitespace-pre-line text-slate-300 leading-relaxed">
+                    <div className="whitespace-pre-line text-slate-300 leading-relaxed font-serif text-lg tracking-wide selection:bg-amber-500/30 selection:text-amber-100">
                         {module.content.full_lesson_content}
                     </div>
                 </div>

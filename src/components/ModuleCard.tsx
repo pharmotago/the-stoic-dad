@@ -1,5 +1,5 @@
-import React from 'react';
-import { Lock, CheckCircle, Circle, PlayCircle } from 'lucide-react';
+import React, { memo } from 'react';
+import { Lock, CheckCircle, Circle, PlayCircle, Clock } from 'lucide-react';
 import { Module } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
 
@@ -11,16 +11,16 @@ interface ModuleCardProps {
     onClick: () => void;
 }
 
-export function ModuleCard({ module, isActive, isCompleted, isLocked, onClick }: ModuleCardProps) {
+export const ModuleCard = memo(function ModuleCard({ module, isActive, isCompleted, isLocked, onClick }: ModuleCardProps) {
     return (
         <div
             onClick={!isLocked ? onClick : undefined}
             className={cn(
-                "relative p-4 rounded-xl border transition-all duration-300 group cursor-pointer overflow-hidden",
+                "relative p-5 rounded-2xl border transition-all duration-500 group cursor-pointer overflow-hidden",
                 isActive
-                    ? "bg-slate-800/80 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.1)]"
-                    : "bg-slate-900 border-slate-800 hover:border-slate-700 hover:bg-slate-800/40",
-                isLocked && "opacity-50 cursor-not-allowed hover:bg-slate-900 hover:border-slate-800"
+                    ? "bg-gradient-to-br from-slate-800 to-slate-900 border-amber-500/50 shadow-2xl shadow-amber-900/10 ring-1 ring-amber-500/10 scale-[1.02]"
+                    : "bg-slate-900/40 border-slate-800 hover:border-slate-700 hover:bg-slate-800/60 hover:-translate-y-1 hover:shadow-xl",
+                isLocked && "opacity-60 cursor-not-allowed hover:bg-slate-900/40 hover:border-slate-800 hover:translate-y-0 hover:shadow-none bg-slate-900/20"
             )}
         >
             <div className="flex items-start justify-between gap-4">
@@ -36,15 +36,22 @@ export function ModuleCard({ module, isActive, isCompleted, isLocked, onClick }:
                     </div>
 
                     <h3 className={cn(
-                        "font-semibold text-lg mb-1 group-hover:text-amber-100 transition-colors",
-                        isActive ? "text-white" : "text-slate-300"
+                        "font-bold text-lg mb-2 transition-colors",
+                        isActive ? "text-white" : "text-slate-300 group-hover:text-white"
                     )}>
                         {module.title}
                     </h3>
 
-                    <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed">
+                    <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed mb-3">
                         {module.summary}
                     </p>
+
+                    {module.readTime && (
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>{module.readTime} min read</span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex-shrink-0 mt-1">
@@ -65,4 +72,4 @@ export function ModuleCard({ module, isActive, isCompleted, isLocked, onClick }:
             {/* ProgressBar for active modules could go here in v2 */}
         </div>
     );
-}
+});

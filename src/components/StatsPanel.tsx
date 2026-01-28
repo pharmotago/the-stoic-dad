@@ -11,9 +11,10 @@ interface VirtueScore {
 interface StatsPanelProps {
     completedModules: number[];
     totalModules: number;
+    onShare?: () => void;
 }
 
-export function StatsPanel({ completedModules, totalModules }: StatsPanelProps) {
+export function StatsPanel({ completedModules, totalModules, onShare }: StatsPanelProps) {
     const completionRate = (completedModules.length / totalModules) * 100;
 
     // Mock virtue scores based on completed modules
@@ -56,13 +57,13 @@ export function StatsPanel({ completedModules, totalModules }: StatsPanelProps) 
             </div>
 
             {/* Virtue Breakdown */}
-            {virtueScores.some(v => v.score > 0) && (
-                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 border border-slate-700/50">
-                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                        <Brain className="w-5 h-5 text-purple-500" />
-                        Virtue Mastery
-                    </h3>
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 border border-slate-700/50">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <Brain className="w-5 h-5 text-purple-500" />
+                    Virtue Mastery
+                </h3>
 
+                {virtueScores.some(v => v.score > 0) ? (
                     <div className="space-y-3">
                         {virtueScores.map((virtue) => (
                             virtue.score > 0 && (
@@ -84,8 +85,14 @@ export function StatsPanel({ completedModules, totalModules }: StatsPanelProps) 
                             )
                         ))}
                     </div>
-                </div>
-            )}
+                ) : (
+                    <div className="text-center py-6 px-4 bg-slate-950/30 rounded-xl border border-dashed border-slate-800">
+                        <Award className="w-10 h-10 text-slate-700 mx-auto mb-3" />
+                        <p className="text-sm text-slate-400 font-medium">No virtues mastered yet.</p>
+                        <p className="text-xs text-slate-500 mt-1">Complete module quizzes to reveal your archetype.</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

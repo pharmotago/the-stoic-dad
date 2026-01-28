@@ -1,21 +1,23 @@
 import React from 'react';
-import { Menu, X, Home, BarChart3, Shield, Settings as SettingsIcon } from 'lucide-react';
+import { Menu, X, Home, BarChart3, Shield, Settings as SettingsIcon, Users } from 'lucide-react';
+import { UserProfile } from '@/components/UserProfile';
 
 interface MobileMenuProps {
     isOpen: boolean;
     onToggle: () => void;
-    onNavigate: (action: 'home' | 'stats' | 'emergency' | 'settings') => void;
+    onNavigate: (action: 'home' | 'stats' | 'emergency' | 'settings' | 'community') => void;
     currentPage: string;
+    totalXp: number;
 }
+const menuItems = [
+    { id: 'home', label: 'Home', icon: Home },
+    { id: 'stats', label: 'Analytics', icon: BarChart3 },
+    { id: 'community', label: 'Community', icon: Users },
+    { id: 'emergency', label: 'Emergency', icon: Shield },
+    { id: 'settings', label: 'Settings', icon: SettingsIcon }
+];
 
-export function MobileMenu({ isOpen, onToggle, onNavigate, currentPage }: MobileMenuProps) {
-    const menuItems = [
-        { id: 'home', label: 'Home', icon: Home },
-        { id: 'stats', label: 'Analytics', icon: BarChart3 },
-        { id: 'emergency', label: 'Emergency', icon: Shield },
-        { id: 'settings', label: 'Settings', icon: SettingsIcon }
-    ];
-
+export function MobileMenu({ isOpen, onToggle, onNavigate, currentPage, totalXp }: MobileMenuProps) {
     return (
         <>
             {/* Hamburger button */}
@@ -37,12 +39,16 @@ export function MobileMenu({ isOpen, onToggle, onNavigate, currentPage }: Mobile
 
             {/* Slide-out menu */}
             <div className={`
-        lg:hidden fixed left-0 top-0 bottom-0 w-64 bg-slate-900 border-r border-slate-800 z-50
+        lg:hidden fixed left-0 top-0 bottom-0 w-80 bg-slate-950 border-r border-slate-800 z-50
         transform transition-transform duration-300 ease-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-                <div className="p-6">
-                    <h2 className="text-xl font-bold text-white mb-6">Menu</h2>
+                <div className="p-6 h-full flex flex-col">
+                    <div className="mb-8">
+                        <UserProfile totalXp={totalXp} className="w-full bg-slate-900/50" />
+                    </div>
+
+                    <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 px-2">Navigation</h2>
 
                     <nav className="space-y-2">
                         {menuItems.map((item) => {

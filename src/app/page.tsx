@@ -6,11 +6,10 @@ import { Header } from '@/components/Header';
 import { EnhancedHeader } from '@/components/EnhancedHeader';
 import { ModuleCard } from '@/components/ModuleCard';
 import { LessonView } from '@/components/LessonView';
-import { QuizModal } from '@/components/QuizModal';
+
 import { StreakTracker } from '@/components/StreakTracker';
 import { ProgressRing } from '@/components/ProgressRing';
 import { EmergencyToolkit } from '@/components/EmergencyToolkit';
-import { JournalEntry } from '@/components/JournalEntry';
 import { StatsPanel } from '@/components/StatsPanel';
 import { WelcomeModal } from '@/components/WelcomeModal';
 import { AchievementBadges } from '@/components/AchievementBadges';
@@ -19,29 +18,62 @@ import { DailyQuote } from '@/components/DailyQuote';
 import { SettingsPanel } from '@/components/SettingsPanel';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { MobileMenu } from '@/components/MobileMenu';
+import { ModuleSearch } from '@/components/ModuleSearch';
+import { TutorialOverlay } from '@/components/TutorialOverlay';
+import { CommunityModal } from '@/components/CommunityModal';
+import { ShareModal } from '@/components/ShareModal'; // New import
+import { XP_CONSTANTS, calculateLevel } from '@/lib/gamification';
+import dynamic from 'next/dynamic';
+
+// Code Splitting for heavy modals
+const QuizModal = dynamic(() => import('@/components/QuizModal').then(mod => mod.QuizModal), {
+    loading: () => null
+});
+const JournalEntry = dynamic(() => import('@/components/JournalEntry').then(mod => mod.JournalEntry), {
+    loading: () => null
+});
 import { useToast } from '@/components/Toast';
 import { Module } from '@/lib/schemas';
 import { Trophy, Shield, BookText, BarChart3 } from 'lucide-react';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { exportJournalData, resetAllProgress } from '@/lib/export';
 
+import { useHistory } from '@/hooks/useHistory';
+
 export default function Home() {
     const [activeModule, setActiveModule] = useState<Module | null>(null);
     const [highestUnlockedId, setHighestUnlockedId] = useState(1);
-    const [completedModules, setCompletedModules] = useState<number[]>([]);
+
+    // History management for progress
+    const {
+        state: completedModules,
+        set: setCompletedModules,
+        undo: undoProgress,
+        redo: redoProgress,
+        canUndo,
+        canRedo
+    } = useHistory<number[]>([]);
     const [showQuiz, setShowQuiz] = useState(false);
     const [showEmergency, setShowEmergency] = useState(false);
     const [showJournal, setShowJournal] = useState(false);
     const [showStats, setShowStats] = useState(false);
     const [showWelcome, setShowWelcome] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
+    const [showSearch, setShowSearch] = useState(false);
+    const [showTutorial, setShowTutorial] = useState(false);
+
     const [showMobileMenu, setShowMobileMenu] = useState(false);
+    const [showCommunity, setShowCommunity] = useState(false);
+    const [showShare, setShowShare] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Streak tracking
     const [currentStreak, setCurrentStreak] = useState(0);
     const [longestStreak, setLongestStreak] = useState(0);
     const [lastCheckIn, setLastCheckIn] = useState<string | null>(null);
+
+    // Gamification State
+    const [totalXp, setTotalXp] = useState(0);
 
     // Toast notifications
     const { showToast, ToastComponent } = useToast();
@@ -54,16 +86,22 @@ export default function Home() {
         const savedLongest = localStorage.getItem('stoic-dad-longest-streak');
         const savedLastCheckIn = localStorage.getItem('stoic-dad-last-checkin');
         const hasSeenWelcome = localStorage.getItem('stoic-dad-welcomed');
+        const hasSeenTutorial = localStorage.getItem('stoic-dad-tutorial');
+        const savedXp = localStorage.getItem('stoic-dad-xp');
 
         if (savedProgress) setHighestUnlockedId(parseInt(savedProgress));
         if (savedCompleted) setCompletedModules(JSON.parse(savedCompleted));
         if (savedStreak) setCurrentStreak(parseInt(savedStreak));
         if (savedLongest) setLongestStreak(parseInt(savedLongest));
         if (savedLastCheckIn) setLastCheckIn(savedLastCheckIn);
+        if (savedXp) setTotalXp(parseInt(savedXp));
 
         // Show welcome modal for first-time users
         if (!hasSeenWelcome) {
             setShowWelcome(true);
+        } else if (!hasSeenTutorial) {
+            // If welcomed but haven't seen tutorial (migrated users), show tutorial
+            setShowTutorial(true);
         }
 
         setIsLoaded(true);
@@ -72,6 +110,8 @@ export default function Home() {
     const handleWelcomeClose = () => {
         setShowWelcome(false);
         localStorage.setItem('stoic-dad-welcomed', 'true');
+        // Show tutorial after welcome
+        setTimeout(() => setShowTutorial(true), 500);
     };
 
     // Check streak on mount
@@ -132,6 +172,21 @@ export default function Home() {
                 localStorage.setItem('stoic-dad-progress', nextId.toString());
             }
 
+            // Award XP
+            const oldLevel = calculateLevel(totalXp).level;
+            const xpGained = XP_CONSTANTS.COMPLETE_QUIZ; // + Bonus potential
+            const newXp = totalXp + xpGained;
+            setTotalXp(newXp);
+            localStorage.setItem('stoic-dad-xp', newXp.toString());
+
+            showToast(`+${xpGained} XP! Knowledge grows.`, 'success');
+
+            // Check Level Up
+            const newLevel = calculateLevel(newXp).level;
+            if (newLevel > oldLevel) {
+                setTimeout(() => showToast(`Level Up! You are now a ${calculateLevel(newXp).title}`, 'success'), 1000);
+            }
+
             setActiveModule(null);
         }
     };
@@ -141,11 +196,26 @@ export default function Home() {
         'e': () => setShowEmergency(true),
         'j': () => activeModule && setShowJournal(true),
         's': () => setShowStats(!showStats),
+        'k': () => setShowSearch(true),
+        '/': () => setShowSearch(true),
+        'z': () => {
+            if (canUndo) {
+                undoProgress();
+                showToast('Progress undone', 'info');
+            }
+        },
+        'y': () => {
+            if (canRedo) {
+                redoProgress();
+                showToast('Progress restored', 'success');
+            }
+        },
         'escape': () => {
             setShowEmergency(false);
             setShowJournal(false);
             setShowQuiz(false);
             setShowWelcome(false);
+            setShowSearch(false);
         }
     }, !activeModule || !showQuiz);
 
@@ -263,6 +333,8 @@ export default function Home() {
                                 onOpenStats={() => setShowStats(!showStats)}
                                 onExportJournal={handleExportJournal}
                                 onResetProgress={handleResetProgress}
+                                onOpenSearch={() => setShowSearch(true)}
+                                onOpenCommunity={() => setShowCommunity(true)}
                             />
 
                             {/* Stats Panel */}
@@ -271,6 +343,7 @@ export default function Home() {
                                     <StatsPanel
                                         completedModules={completedModules}
                                         totalModules={courseData.length}
+                                        onShare={() => setShowShare(true)}
                                     />
                                 </div>
                             )}
@@ -312,6 +385,30 @@ export default function Home() {
                 onClose={() => setShowSettings(false)}
             />
 
+            <CommunityModal
+                isOpen={showCommunity}
+                onClose={() => setShowCommunity(false)}
+                currentXp={totalXp}
+                currentStreak={currentStreak}
+            />
+
+            <ShareModal
+                isOpen={showShare}
+                onClose={() => setShowShare(false)}
+                totalXp={totalXp}
+                streak={currentStreak}
+                completedModules={completedModules.length}
+            />
+
+            <ModuleSearch
+                isOpen={showSearch}
+                onClose={() => setShowSearch(false)}
+                onSelectModule={(module) => {
+                    handleModuleClick(module);
+                    window.scrollTo({ top: 0, behavior: 'instant' });
+                }}
+            />
+
             <MobileMenu
                 isOpen={showMobileMenu}
                 onToggle={() => setShowMobileMenu(!showMobileMenu)}
@@ -320,8 +417,10 @@ export default function Home() {
                     if (action === 'stats') setShowStats(!showStats);
                     if (action === 'emergency') setShowEmergency(true);
                     if (action === 'settings') setShowSettings(true);
+                    if (action === 'community') setShowCommunity(true);
                 }}
                 currentPage={activeModule ? 'module' : 'home'}
+                totalXp={totalXp}
             />
         </div>
     );
