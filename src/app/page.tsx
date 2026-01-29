@@ -22,6 +22,7 @@ import { ModuleSearch } from '@/components/ModuleSearch';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { CommunityModal } from '@/components/CommunityModal';
 import { ShareModal } from '@/components/ShareModal'; // New import
+import { PremiumModal } from '@/components/PremiumModal';
 import { XP_CONSTANTS, calculateLevel } from '@/lib/gamification';
 import dynamic from 'next/dynamic';
 
@@ -44,6 +45,10 @@ export default function Home() {
     const [activeModule, setActiveModule] = useState<Module | null>(null);
     const [highestUnlockedId, setHighestUnlockedId] = useState(1);
 
+    // Premium Logic
+    const [isPremium, setIsPremium] = useState(false);
+    const [showPremiumModal, setShowPremiumModal] = useState(false);
+
     // History management for progress
     const {
         state: completedModules,
@@ -53,6 +58,7 @@ export default function Home() {
         canUndo,
         canRedo
     } = useHistory<number[]>([]);
+
     const [showQuiz, setShowQuiz] = useState(false);
     const [showEmergency, setShowEmergency] = useState(false);
     const [showJournal, setShowJournal] = useState(false);
@@ -61,7 +67,6 @@ export default function Home() {
     const [showSettings, setShowSettings] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
     const [showTutorial, setShowTutorial] = useState(false);
-
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [showCommunity, setShowCommunity] = useState(false);
     const [showShare, setShowShare] = useState(false);
@@ -88,6 +93,7 @@ export default function Home() {
         const hasSeenWelcome = localStorage.getItem('stoic-dad-welcomed');
         const hasSeenTutorial = localStorage.getItem('stoic-dad-tutorial');
         const savedXp = localStorage.getItem('stoic-dad-xp');
+        const savedPremium = localStorage.getItem('stoic-dad-premium');
 
         if (savedProgress) setHighestUnlockedId(parseInt(savedProgress));
         if (savedCompleted) setCompletedModules(JSON.parse(savedCompleted));
@@ -95,12 +101,12 @@ export default function Home() {
         if (savedLongest) setLongestStreak(parseInt(savedLongest));
         if (savedLastCheckIn) setLastCheckIn(savedLastCheckIn);
         if (savedXp) setTotalXp(parseInt(savedXp));
+        if (savedPremium === 'true') setIsPremium(true);
 
         // Show welcome modal for first-time users
         if (!hasSeenWelcome) {
             setShowWelcome(true);
         } else if (!hasSeenTutorial) {
-            // If welcomed but haven't seen tutorial (migrated users), show tutorial
             setShowTutorial(true);
         }
 
@@ -112,6 +118,13 @@ export default function Home() {
         localStorage.setItem('stoic-dad-welcomed', 'true');
         // Show tutorial after welcome
         setTimeout(() => setShowTutorial(true), 500);
+    };
+
+    const handleUnlockPremium = () => {
+        setIsPremium(true);
+        localStorage.setItem('stoic-dad-premium', 'true');
+        // Unlock all modules essentially by removing the lock check visual
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     // Check streak on mount
@@ -133,6 +146,13 @@ export default function Home() {
     }, [isLoaded, lastCheckIn]);
 
     const handleModuleClick = (module: Module) => {
+        // Premium Lock Visual
+        if (!isPremium && module.id > 1) {
+            setShowPremiumModal(true);
+            return;
+        }
+
+        // Standard Progression Lock
         if (module.id <= highestUnlockedId) {
             setActiveModule(module);
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -216,17 +236,12 @@ export default function Home() {
             setShowQuiz(false);
             setShowWelcome(false);
             setShowSearch(false);
+            setShowPremiumModal(false);
         }
     }, !activeModule || !showQuiz);
 
-    // Export and reset handlers
-    const handleExportJournal = () => {
-        exportJournalData(courseData.length);
-    };
-
-    const handleResetProgress = () => {
-        resetAllProgress();
-    };
+    const handleExportJournal = () => { exportJournalData(courseData.length); };
+    const handleResetProgress = () => { resetAllProgress(); };
 
     if (!isLoaded) return <LoadingSkeleton />;
 
@@ -235,6 +250,8 @@ export default function Home() {
     return (
         <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-amber-500/30">
             {ToastComponent}
+
+            {/* Conditional Header: simplified on landing to avoid distraction? User asked for Hero rewrite of Home. Kept standard for now for consistency */}
             <EnhancedHeader
                 completionPercentage={progress}
                 currentStreak={currentStreak}
@@ -253,106 +270,144 @@ export default function Home() {
 
             <main className="container mx-auto px-4 py-8 max-w-6xl">
                 {activeModule ? (
-                    <div className="max-w-2xl mx-auto">
+                    <div className="max-w-3xl mx-auto">
                         <LessonView
                             module={activeModule}
                             onBack={() => setActiveModule(null)}
                             onTakeQuiz={() => setShowQuiz(true)}
                         />
 
-                        {/* Journal button */}
                         <button
                             onClick={() => setShowJournal(true)}
-                            className="mt-6 w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-xl flex items-center justify-center gap-2 transition-colors border border-slate-700"
+                            className="mt-6 w-full py-3 bg-slate-900/50 hover:bg-slate-800 text-slate-300 font-medium rounded-xl flex items-center justify-center gap-2 transition-colors border border-slate-700/50"
                         >
                             <BookText className="w-5 h-5" />
                             Add Reflection Note
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Main Content */}
-                        <div className="lg:col-span-2 space-y-6">
-                            <div className="text-center mb-6">
-                                <h2 className="text-3xl font-bold mb-2 text-white">The Path</h2>
-                                <p className="text-slate-400">Master yourself, lead your family.</p>
+                    <div className="space-y-12">
+                        {/* HERO SECTION */}
+                        <div className="text-center space-y-6 py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-4">
+                                Stop The Dad Rage. <br />
+                                <span className="text-amber-500">Start Leading.</span>
+                            </h1>
+                            <p className="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                                The 5-Day Stoic Protocol for fathers who want to control their temper,
+                                master their emotions, and build an unbreakable legacy.
+                            </p>
+
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                                <button
+                                    onClick={() => handleModuleClick(courseData[0])}
+                                    className="w-full sm:w-auto px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl border border-slate-700 transition-all hover:scale-105"
+                                >
+                                    Start Module 1 (Free)
+                                </button>
+
+                                <button
+                                    onClick={() => setShowPremiumModal(true)}
+                                    className="w-full sm:w-auto px-8 py-4 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold rounded-xl shadow-lg shadow-amber-500/20 transition-all hover:scale-105 flex items-center justify-center gap-2"
+                                >
+                                    <Shield className="w-5 h-5" />
+                                    Unlock Full Protocol ($29)
+                                </button>
                             </div>
 
-                            <div className="grid gap-4">
-                                {courseData.map((module) => (
-                                    <ModuleCard
-                                        key={module.id}
-                                        module={module}
-                                        isActive={module.id === highestUnlockedId && !completedModules.includes(module.id)}
-                                        isCompleted={completedModules.includes(module.id)}
-                                        isLocked={module.id > highestUnlockedId}
-                                        onClick={() => handleModuleClick(module)}
-                                    />
-                                ))}
+                            {/* Social Proof */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 text-left">
+                                <Testimonial
+                                    quote="Saved my relationship with my son. I finally learned how to pause before reacting."
+                                    author="Mark, Sydney"
+                                />
+                                <Testimonial
+                                    quote="Simple, tactical, and effective. The missing manual for modern fatherhood."
+                                    author="James, London"
+                                />
+                                <Testimonial
+                                    quote="The visualization techniques changed how I handle work stress completely."
+                                    author="David, New York"
+                                />
                             </div>
                         </div>
 
-                        {/* Sidebar */}
-                        <div className="space-y-6">
-                            {/* Progress Ring */}
-                            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 border border-slate-700/50 flex flex-col items-center">
-                                <ProgressRing progress={progress} size={140} />
-                                <div className="mt-4 text-center">
-                                    <div className="text-sm text-slate-400 mb-1">
-                                        {completedModules.length} of {courseData.length} modules
-                                    </div>
-                                    {progress === 100 && (
-                                        <div className="flex items-center justify-center gap-1 text-amber-500 font-bold mt-2">
-                                            <Trophy className="w-4 h-4" />
-                                            <span className="text-sm">Path Complete!</span>
-                                        </div>
-                                    )}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            {/* Main Content: Module List */}
+                            <div className="lg:col-span-2 space-y-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                                        <BookText className="w-6 h-6 text-amber-500" />
+                                        Curriculum
+                                    </h2>
+                                    {isPremium && <span className="px-3 py-1 bg-amber-500/10 text-amber-500 text-xs font-bold rounded-full border border-amber-500/20">PREMIUM UNLOCKED</span>}
+                                </div>
+
+                                <div className="grid gap-4">
+                                    {courseData.map((module) => {
+                                        // "Locked" logic: 
+                                        // If !Premium AND id > 1 -> Premium Locked (shows padlock, opens modal)
+                                        // If Premium AND id > highestUnlocked -> Progression Locked (shows padlock, no click or standard logic)
+                                        // Currently ModuleCard handles "isLocked". We'll overload it or pass a custom click.
+
+                                        const isPremiumLocked = !isPremium && module.id > 1;
+                                        const isProgressionLocked = module.id > highestUnlockedId;
+
+                                        return (
+                                            <ModuleCard
+                                                key={module.id}
+                                                module={module}
+                                                isActive={module.id === highestUnlockedId && !completedModules.includes(module.id)}
+                                                isCompleted={completedModules.includes(module.id)}
+                                                isLocked={isPremiumLocked || isProgressionLocked}
+                                                onClick={() => handleModuleClick(module)}
+                                            />
+                                        );
+                                    })}
                                 </div>
                             </div>
 
-                            {/* Daily Quote */}
-                            <DailyQuote />
-
-                            {/* Streak Tracker */}
-                            <StreakTracker
-                                currentStreak={currentStreak}
-                                longestStreak={longestStreak}
-                                lastCheckIn={lastCheckIn}
-                            />
-
-                            {/* Achievements */}
-                            <AchievementBadges
-                                completedModules={completedModules}
-                                currentStreak={currentStreak}
-                                longestStreak={longestStreak}
-                            />
-
-                            {/* Quick Actions */}
-                            <QuickActions
-                                onOpenEmergency={() => setShowEmergency(true)}
-                                onOpenStats={() => setShowStats(!showStats)}
-                                onExportJournal={handleExportJournal}
-                                onResetProgress={handleResetProgress}
-                                onOpenSearch={() => setShowSearch(true)}
-                                onOpenCommunity={() => setShowCommunity(true)}
-                            />
-
-                            {/* Stats Panel */}
-                            {showStats && (
-                                <div className="animate-in slide-in-from-top duration-300">
-                                    <StatsPanel
-                                        completedModules={completedModules}
-                                        totalModules={courseData.length}
-                                        onShare={() => setShowShare(true)}
-                                    />
+                            {/* Sidebar */}
+                            <div className="space-y-6">
+                                {/* Progress Ring */}
+                                <div className="glass-card rounded-2xl p-6 flex flex-col items-center">
+                                    <ProgressRing progress={progress} size={140} />
+                                    <div className="mt-4 text-center">
+                                        <div className="text-sm text-slate-400 mb-1">
+                                            {completedModules.length} of {courseData.length} modules
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
+
+                                <DailyQuote />
+
+                                <StreakTracker
+                                    currentStreak={currentStreak}
+                                    longestStreak={longestStreak}
+                                    lastCheckIn={lastCheckIn}
+                                />
+
+                                <AchievementBadges
+                                    completedModules={completedModules}
+                                    currentStreak={currentStreak}
+                                    longestStreak={longestStreak}
+                                />
+
+                                <QuickActions
+                                    onOpenEmergency={() => setShowEmergency(true)}
+                                    onOpenStats={() => setShowStats(!showStats)}
+                                    onExportJournal={handleExportJournal}
+                                    onResetProgress={handleResetProgress}
+                                    onOpenSearch={() => setShowSearch(true)}
+                                    onOpenCommunity={() => setShowCommunity(true)}
+                                />
+                            </div>
                         </div>
                     </div>
                 )}
             </main>
 
-            {/* Modals */}
+            {/* Modals & Overlays */}
             {activeModule && (
                 <>
                     <QuizModal
@@ -370,58 +425,32 @@ export default function Home() {
                 </>
             )}
 
-            <EmergencyToolkit
-                isOpen={showEmergency}
-                onClose={() => setShowEmergency(false)}
-            />
+            <EmergencyToolkit isOpen={showEmergency} onClose={() => setShowEmergency(false)} />
+            <WelcomeModal isOpen={showWelcome} onClose={handleWelcomeClose} />
+            <SettingsPanel isOpen={showSettings} onClose={() => setShowSettings(false)} />
+            <CommunityModal isOpen={showCommunity} onClose={() => setShowCommunity(false)} currentXp={totalXp} currentStreak={currentStreak} />
+            <ShareModal isOpen={showShare} onClose={() => setShowShare(false)} totalXp={totalXp} streak={currentStreak} completedModules={completedModules.length} />
+            <ModuleSearch isOpen={showSearch} onClose={() => setShowSearch(false)} onSelectModule={(module) => { handleModuleClick(module); window.scrollTo({ top: 0, behavior: 'instant' }); }} />
+            <MobileMenu isOpen={showMobileMenu} onToggle={() => setShowMobileMenu(!showMobileMenu)} onNavigate={(action) => { if (action === 'home') setActiveModule(null); if (action === 'stats') setShowStats(!showStats); if (action === 'emergency') setShowEmergency(true); if (action === 'settings') setShowSettings(true); if (action === 'community') setShowCommunity(true); }} currentPage={activeModule ? 'module' : 'home'} totalXp={totalXp} />
 
-            <WelcomeModal
-                isOpen={showWelcome}
-                onClose={handleWelcomeClose}
-            />
-
-            <SettingsPanel
-                isOpen={showSettings}
-                onClose={() => setShowSettings(false)}
-            />
-
-            <CommunityModal
-                isOpen={showCommunity}
-                onClose={() => setShowCommunity(false)}
-                currentXp={totalXp}
-                currentStreak={currentStreak}
-            />
-
-            <ShareModal
-                isOpen={showShare}
-                onClose={() => setShowShare(false)}
-                totalXp={totalXp}
-                streak={currentStreak}
-                completedModules={completedModules.length}
-            />
-
-            <ModuleSearch
-                isOpen={showSearch}
-                onClose={() => setShowSearch(false)}
-                onSelectModule={(module) => {
-                    handleModuleClick(module);
-                    window.scrollTo({ top: 0, behavior: 'instant' });
-                }}
-            />
-
-            <MobileMenu
-                isOpen={showMobileMenu}
-                onToggle={() => setShowMobileMenu(!showMobileMenu)}
-                onNavigate={(action) => {
-                    if (action === 'home') setActiveModule(null);
-                    if (action === 'stats') setShowStats(!showStats);
-                    if (action === 'emergency') setShowEmergency(true);
-                    if (action === 'settings') setShowSettings(true);
-                    if (action === 'community') setShowCommunity(true);
-                }}
-                currentPage={activeModule ? 'module' : 'home'}
-                totalXp={totalXp}
+            {/* New Premium Modal */}
+            <PremiumModal
+                isOpen={showPremiumModal}
+                onClose={() => setShowPremiumModal(false)}
+                onUnlock={handleUnlockPremium}
             />
         </div>
     );
 }
+
+function Testimonial({ quote, author }: { quote: string, author: string }) {
+    return (
+        <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
+            <div className="text-amber-500 mb-3">★★★★★</div>
+            <p className="text-slate-300 italic mb-4">"{quote}"</p>
+            <p className="text-sm font-bold text-white">— {author}</p>
+        </div>
+    );
+}
+
+

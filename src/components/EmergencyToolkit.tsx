@@ -44,10 +44,17 @@ interface EmergencyToolkitProps {
 
 export function EmergencyToolkit({ isOpen, onClose }: EmergencyToolkitProps) {
     const [selected, setSelected] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
 
     if (!isOpen) return null;
 
     const selectedProtocol = protocols.find(p => p.id === selected);
+
+    const handleCopy = (text: string) => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-md animate-in fade-in duration-300">
@@ -102,11 +109,26 @@ export function EmergencyToolkit({ isOpen, onClose }: EmergencyToolkitProps) {
                                 ← Back to protocols
                             </button>
 
-                            <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
-                                <h4 className="text-2xl font-bold text-white mb-4">{selectedProtocol.title}</h4>
+                            <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700 relative overflow-hidden">
+                                {selected === 'pause' && (
+                                    <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none">
+                                        <div className="w-32 h-32 rounded-full bg-emerald-500/30 animate-breathe blur-xl" />
+                                    </div>
+                                )}
 
-                                <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-                                    <p className="text-lg text-amber-100 italic">"{selectedProtocol.prompt}"</p>
+                                <h4 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                                    {selectedProtocol.title}
+                                    {selected === 'pause' && <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-full animate-pulse">Breathing Assistant Active</span>}
+                                </h4>
+
+                                <div
+                                    className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg cursor-pointer hover:bg-amber-500/20 transition-colors group relative"
+                                    onClick={() => handleCopy(selectedProtocol.prompt)}
+                                >
+                                    <p className="text-lg text-amber-100 italic pr-8">"{selectedProtocol.prompt}"</p>
+                                    <div className="absolute top-4 right-4 text-amber-500/50 group-hover:text-amber-500 transition-colors text-xs font-mono">
+                                        {copied ? 'COPIED' : 'COPY'}
+                                    </div>
                                 </div>
 
                                 <div className="prose prose-invert max-w-none">

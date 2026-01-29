@@ -35,10 +35,10 @@ export function Toast({ message, type, duration = 3000, onClose }: ToastProps) {
 
     return (
         <div className={cn(
-            "fixed top-20 right-4 z-[100] p-4 rounded-xl border backdrop-blur-md shadow-2xl animate-in slide-in-from-top-5 duration-300 max-w-sm",
+            "fixed top-20 right-4 z-[100] p-4 rounded-xl border backdrop-blur-md shadow-2xl animate-in slide-in-from-top-5 duration-300 max-w-sm overflow-hidden",
             colors[type]
         )}>
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 relative z-10">
                 <Icon className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <p className="text-sm font-medium flex-1">{message}</p>
                 <button
@@ -48,6 +48,22 @@ export function Toast({ message, type, duration = 3000, onClose }: ToastProps) {
                     <X className="w-4 h-4" />
                 </button>
             </div>
+
+            {/* Progress Bar */}
+            <div className="absolute bottom-0 left-0 h-1 bg-current opacity-20 w-full">
+                <div
+                    className="h-full bg-current opacity-50 origin-left"
+                    style={{
+                        animation: `shrink ${duration}ms linear forwards`
+                    }}
+                />
+            </div>
+            <style jsx>{`
+                @keyframes shrink {
+                    from { transform: scaleX(1); }
+                    to { transform: scaleX(0); }
+                }
+            `}</style>
         </div>
     );
 }

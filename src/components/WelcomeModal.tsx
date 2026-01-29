@@ -80,12 +80,16 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
                         <p className="text-amber-400/60 text-center text-sm mt-2">— Marcus Aurelius</p>
                     </div>
 
-                    <button
-                        onClick={onClose}
-                        className="w-full py-4 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-amber-500/20"
-                    >
-                        Begin Your Journey
-                    </button>
+                    <div className="relative group">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-amber-600 to-amber-400 rounded-xl blur opacity-25 group-hover:opacity-75 transition duration-200" />
+                        <button
+                            onClick={onClose}
+                            className="relative w-full py-4 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold rounded-xl transition-all transform hover:scale-[1.01] active:scale-[0.99] shadow-xl flex items-center justify-center gap-2"
+                        >
+                            <Flame className="w-5 h-5" />
+                            Begin Your Journey
+                        </button>
+                    </div>
 
                     <p className="text-center text-slate-500 text-sm mt-4">
                         Unlock modules sequentially by completing quizzes. Progress is saved automatically.

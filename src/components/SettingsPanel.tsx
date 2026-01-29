@@ -137,11 +137,33 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                         </div>
                         <button
                             onClick={() => updateSetting('confettiEnabled', !settings.confettiEnabled)}
-                            className={`relative w-12 h-6 rounded-full transition-colors ${settings.confettiEnabled ? 'bg-emerald-500' : 'bg-slate-700'
+                            className={`relative w-12 h-6 rounded-full transition-all duration-300 ${settings.confettiEnabled ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-slate-700'
                                 }`}
                         >
-                            <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${settings.confettiEnabled ? 'translate-x-6' : ''
+                            <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-all duration-300 shadow-sm ${settings.confettiEnabled ? 'translate-x-6' : ''
                                 }`} />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Danger Zone */}
+                <div className="p-6 border-t border-slate-800 bg-red-900/5">
+                    <h4 className="text-xs font-bold text-red-400 uppercase tracking-wider mb-4">Danger Zone</h4>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h4 className="font-semibold text-white">Reset Progress</h4>
+                            <p className="text-xs text-slate-400">Clear all data and start over</p>
+                        </div>
+                        <button
+                            onClick={() => {
+                                if (confirm('Are you sure? This cannot be undone.')) {
+                                    localStorage.clear();
+                                    window.location.reload();
+                                }
+                            }}
+                            className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-sm font-medium transition-colors"
+                        >
+                            Reset Data
                         </button>
                     </div>
                 </div>
@@ -153,6 +175,6 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                     </p>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
