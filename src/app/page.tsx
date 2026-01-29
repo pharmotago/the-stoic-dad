@@ -21,8 +21,12 @@ import { MobileMenu } from '@/components/MobileMenu';
 import { ModuleSearch } from '@/components/ModuleSearch';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { CommunityModal } from '@/components/CommunityModal';
-import { ShareModal } from '@/components/ShareModal'; // New import
+import { ShareModal } from '@/components/ShareModal';
 import { PremiumModal } from '@/components/PremiumModal';
+import { Hero3DPreview } from '@/components/Hero3DPreview';
+import { PricingTable } from '@/components/PricingTable';
+import { FAQSection } from '@/components/FAQSection';
+import { StickyPromo } from '@/components/StickyPromo';
 import { XP_CONSTANTS, calculateLevel } from '@/lib/gamification';
 import dynamic from 'next/dynamic';
 
@@ -286,53 +290,75 @@ export default function Home() {
                         </button>
                     </div>
                 ) : (
-                    <div className="space-y-12">
+                    <div className="space-y-20">
                         {/* HERO SECTION */}
-                        <div className="text-center space-y-6 py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-4">
-                                Stop The Dad Rage. <br />
-                                <span className="text-amber-500">Start Leading.</span>
-                            </h1>
-                            <p className="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
-                                The 5-Day Stoic Protocol for fathers who want to control their temper,
-                                master their emotions, and build an unbreakable legacy.
-                            </p>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <div className="text-center lg:text-left space-y-8">
+                                <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-[1.1]">
+                                    Stop The Dad Rage. <br />
+                                    <span className="text-amber-500">Start Leading.</span>
+                                </h1>
+                                <p className="text-xl text-slate-400 leading-relaxed max-w-xl mx-auto lg:mx-0">
+                                    The 5-Day Stoic Protocol for fathers who want to control their temper,
+                                    master their emotions, and build an unbreakable legacy.
+                                </p>
 
-                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-                                <button
-                                    onClick={() => handleModuleClick(courseData[0])}
-                                    className="w-full sm:w-auto px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl border border-slate-700 transition-all hover:scale-105"
-                                >
-                                    Start Module 1 (Free)
-                                </button>
+                                <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+                                    <button
+                                        onClick={() => handleModuleClick(courseData[0])}
+                                        className="w-full sm:w-auto px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl border border-slate-700 transition-all hover:scale-105"
+                                    >
+                                        Start Module 1 (Free)
+                                    </button>
 
-                                <button
-                                    onClick={() => setShowPremiumModal(true)}
-                                    className="w-full sm:w-auto px-8 py-4 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold rounded-xl shadow-lg shadow-amber-500/20 transition-all hover:scale-105 flex items-center justify-center gap-2"
-                                >
-                                    <Shield className="w-5 h-5" />
-                                    Unlock Full Protocol ($29)
-                                </button>
+                                    <button
+                                        onClick={() => setShowPremiumModal(true)}
+                                        className="w-full sm:w-auto px-8 py-4 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold rounded-xl shadow-lg shadow-amber-500/20 transition-all hover:scale-105 flex items-center justify-center gap-2"
+                                    >
+                                        <Shield className="w-5 h-5" />
+                                        Unlock Full Protocol ($29)
+                                    </button>
+                                </div>
+
+                                <div className="pt-4 flex items-center justify-center lg:justify-start gap-4 text-sm text-slate-500 font-medium">
+                                    <div className="flex -space-x-2">
+                                        {[1, 2, 3, 4].map(i => (
+                                            <div key={i} className="w-8 h-8 rounded-full bg-slate-800 border-2 border-slate-950" />
+                                        ))}
+                                    </div>
+                                    <p>Join 5,000+ Fathers</p>
+                                </div>
                             </div>
 
-                            {/* Social Proof */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 text-left">
-                                <Testimonial
-                                    quote="Saved my relationship with my son. I finally learned how to pause before reacting."
-                                    author="Mark, Sydney"
-                                />
-                                <Testimonial
-                                    quote="Simple, tactical, and effective. The missing manual for modern fatherhood."
-                                    author="James, London"
-                                />
-                                <Testimonial
-                                    quote="The visualization techniques changed how I handle work stress completely."
-                                    author="David, New York"
-                                />
+                            {/* 3D Visual */}
+                            <div className="hidden lg:block">
+                                <Hero3DPreview />
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Social Proof Strip */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                            <Testimonial
+                                quote="Saved my relationship with my son. I finally learned how to pause before reacting."
+                                author="Mark, Sydney"
+                            />
+                            <Testimonial
+                                quote="Simple, tactical, and effective. The missing manual for modern fatherhood."
+                                author="James, London"
+                            />
+                            <Testimonial
+                                quote="The visualization techniques changed how I handle work stress completely."
+                                author="David, New York"
+                            />
+                        </div>
+
+                        {/* Pricing Table */}
+                        <PricingTable />
+
+                        {/* FAQ */}
+                        <FAQSection />
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-12 border-t border-slate-900/50">
                             {/* Main Content: Module List */}
                             <div className="lg:col-span-2 space-y-6">
                                 <div className="flex items-center justify-between mb-4">
@@ -439,6 +465,8 @@ export default function Home() {
                 onClose={() => setShowPremiumModal(false)}
                 onUnlock={handleUnlockPremium}
             />
+
+            {!isPremium && <StickyPromo />}
         </div>
     );
 }

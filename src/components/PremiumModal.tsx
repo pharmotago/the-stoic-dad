@@ -104,7 +104,7 @@ export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
 
                     {/* CTA */}
                     <a
-                        href="https://gumroad.com"
+                        href="https://mcjp.gumroad.com/l/uobtt"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="group w-full flex items-center justify-center gap-3 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg shadow-amber-500/20"
