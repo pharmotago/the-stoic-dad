@@ -296,11 +296,11 @@ export default function Home() {
                             <div className="text-center lg:text-left space-y-8">
                                 <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-[1.1]">
                                     Stop The Dad Rage. <br />
-                                    <span className="text-amber-500">Start Leading.</span>
+                                <span className="text-amber-500">Start Leading.</span>
                                 </h1>
                                 <p className="text-xl text-slate-400 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                                    The 5-Day Stoic Protocol for fathers who want to control their temper,
-                                    master their emotions, and build an unbreakable legacy.
+                                    The 5-Day Stoic Protocol for fathers who want to control their temper, 
+                                master their emotions, and build an unbreakable legacy.
                                 </p>
 
                                 <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
