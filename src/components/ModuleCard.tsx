@@ -2,6 +2,8 @@ import React, { memo } from 'react';
 import { Lock, CheckCircle, Circle, PlayCircle, Clock } from 'lucide-react';
 import { Module } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
+import { useSound } from '@/lib/sound';
+import { haptics } from '@/lib/haptics';
 
 interface ModuleCardProps {
     module: Module;
@@ -12,9 +14,23 @@ interface ModuleCardProps {
 }
 
 export const ModuleCard = memo(function ModuleCard({ module, isActive, isCompleted, isLocked, onClick }: ModuleCardProps) {
+    const { play } = useSound();
+
+    const handleClick = () => {
+        if (isLocked) {
+            play('lock');
+            haptics.error();
+        } else {
+            play('click');
+            haptics.tap();
+            onClick();
+        }
+    };
+
     return (
         <div
-            onClick={!isLocked ? onClick : undefined}
+            onClick={handleClick}
+            onMouseEnter={() => !isLocked && play('hover')}
             className={cn(
                 "relative p-5 rounded-2xl border transition-all duration-500 group cursor-pointer overflow-hidden",
                 isActive

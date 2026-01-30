@@ -28,6 +28,8 @@ export const metadata: Metadata = {
     },
 };
 
+import { SoundProvider } from "@/lib/sound";
+
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -37,7 +39,9 @@ export default function RootLayout({
         <html lang="en">
             <body className={cn(inter.className, "antialiased")}>
                 <ErrorBoundary>
-                    {children}
+                    <SoundProvider>
+                        {children}
+                    </SoundProvider>
                 </ErrorBoundary>
             </body>
         </html>

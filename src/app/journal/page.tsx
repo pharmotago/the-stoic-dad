@@ -5,7 +5,7 @@ import courseData from "@/data";
 import { Footer } from "@/components/Footer";
 import { ArrowLeft, PenTool, Search, Calendar, Hash, Smile, Meh, Frown, Download, Printer, FileDown, BookOpen } from "lucide-react";
 import { useEffect, useState } from "react";
-import { hapticFeedback } from "@/lib/haptics";
+import { haptics } from "@/lib/haptics";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useRouter } from "next/navigation";
 
@@ -55,7 +55,7 @@ export default function JournalPage() {
     const totalWords = entries.reduce((acc, curr) => acc + curr.wordCount, 0);
 
     const exportToMarkdown = () => {
-        hapticFeedback.medium();
+        haptics.medium();
         const md = entries.map(e => `## Day ${e.id}: ${e.title}\n*Date: ${new Date(e.timestamp).toLocaleDateString()} | Mood: ${e.mood}*\n\n${e.content}\n\n---`).join("\n\n");
         const blob = new Blob([md], { type: "text/markdown" });
         const url = URL.createObjectURL(blob);
@@ -66,7 +66,7 @@ export default function JournalPage() {
     };
 
     const exportToJSON = () => {
-        hapticFeedback.medium();
+        haptics.medium();
         const blob = new Blob([JSON.stringify(journalEntries, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -76,7 +76,7 @@ export default function JournalPage() {
     };
 
     const handlePrint = () => {
-        hapticFeedback.medium();
+        haptics.medium();
         window.print();
     };
 
@@ -95,7 +95,7 @@ export default function JournalPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between mb-12 no-print">
                     <button
-                        onClick={() => { hapticFeedback.light(); router.back(); }}
+                        onClick={() => { haptics.light(); router.back(); }}
                         className="flex items-center text-slate-400 hover:text-amber-500 transition-colors"
                     >
                         <ArrowLeft className="w-5 h-5 mr-2" /> Back
@@ -162,7 +162,7 @@ export default function JournalPage() {
                             title="No entries yet"
                             description="Your reflections are the anchor of your practice. Complete a lesson to record your first entry."
                             actionLabel="Start Training"
-                            onAction={() => { hapticFeedback.medium(); router.push("/"); }}
+                            onAction={() => { haptics.medium(); router.push("/"); }}
                         />
                     )
                 ) : (

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Module } from "@/types";
 import { ArrowRight, Clock, Pause, Play } from "lucide-react";
 import { ProgressBar } from "./ui/ProgressBar";
-import { hapticFeedback } from "@/lib/haptics";
+import { haptics } from "@/lib/haptics";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { GlossaryTerm } from "./ui/GlossaryTerm";
@@ -77,7 +77,7 @@ export function LessonReader({ module, onNext }: LessonReaderProps) {
                         <Clock className="w-3 h-3 text-amber-500" /> <span className="text-slate-300 font-mono">{formatTime(seconds)}</span>
                     </div>
                     <button
-                        onClick={() => { hapticFeedback.light(); setIsActive(!isActive); }}
+                        onClick={() => { haptics.light(); setIsActive(!isActive); }}
                         className="p-1.5 hover:bg-slate-800 rounded-md transition-colors"
                         title={isActive ? "Pause Timer" : "Resume Timer"}
                     >
@@ -87,13 +87,13 @@ export function LessonReader({ module, onNext }: LessonReaderProps) {
 
                 <div className="flex bg-slate-900/50 p-1 rounded-lg border border-slate-700/50">
                     <button
-                        onClick={() => { hapticFeedback.light(); setReadingLevel("standard"); }}
+                        onClick={() => { haptics.light(); setReadingLevel("standard"); }}
                         className={cn("px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest transition-all", readingLevel === "standard" ? "bg-amber-500 text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-300")}
                     >
                         Standard
                     </button>
                     <button
-                        onClick={() => { hapticFeedback.light(); setReadingLevel("quick"); }}
+                        onClick={() => { haptics.light(); setReadingLevel("quick"); }}
                         className={cn("px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest transition-all", readingLevel === "quick" ? "bg-amber-500 text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-300")}
                     >
                         Quick
@@ -115,7 +115,7 @@ export function LessonReader({ module, onNext }: LessonReaderProps) {
             <div className="flex justify-end mt-12 pb-12">
                 <button
                     onClick={() => {
-                        hapticFeedback.light();
+                        haptics.light();
                         onNext();
                     }}
                     className="flex items-center text-amber-500 font-bold group"

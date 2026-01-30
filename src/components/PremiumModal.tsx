@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Lock, Star, Check, X, CreditCard, ArrowRight } from 'lucide-react';
 import { useToast } from './Toast';
+import { useSound } from '@/lib/sound';
+import { haptics } from '@/lib/haptics';
 
 interface PremiumModalProps {
     isOpen: boolean;
@@ -12,6 +14,7 @@ export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
     const [code, setCode] = useState('');
     const [error, setError] = useState(false);
     const { showToast } = useToast();
+    const { play } = useSound();
 
     if (!isOpen) return null;
 
@@ -20,9 +23,13 @@ export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
         if (code.trim().toUpperCase() === 'STOIC2026') {
             onUnlock();
             onClose();
+            play('success');
+            haptics.success();
             showToast('Premium Access Unlocked! Welcome to the inner circle.', 'success');
         } else {
             setError(true);
+            play('lock');
+            haptics.error();
             showToast('Invalid access code', 'error');
             setTimeout(() => setError(false), 2000);
         }
