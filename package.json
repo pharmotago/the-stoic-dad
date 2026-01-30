@@ -7,7 +7,9 @@
         "build": "next build",
         "test": "vitest",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "evolve": "node scripts/evolve.js",
+        "evolve:daemon": "node scripts/evolve.js --daemon"
     },
     "dependencies": {
         "@tailwindcss/typography": "^0.5.19",

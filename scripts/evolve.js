@@ -110,8 +110,30 @@ function evolve() {
 
     } catch (error) {
         log(`CRITICAL ERROR: ${error.message}`);
-        process.exit(1);
+        // Don't exit process in daemon mode, just log and continue next cycle
+        if (!process.argv.includes('--daemon')) {
+            process.exit(1);
+        }
     }
 }
 
-evolve();
+// Daemon Mode Logic
+if (process.argv.includes('--daemon')) {
+    const INTERVAL = 6 * 60 * 60 * 1000; // 6 Hours
+    log(`Starting Auto-Evolution Daemon. Cycle set to every 6 hours.`);
+
+    // Run immediately
+    evolve();
+
+    // Schedule loop
+    setInterval(() => {
+        log('Starting scheduled evolution cycle...');
+        evolve();
+    }, INTERVAL);
+
+    // Keep process alive
+    process.stdin.resume();
+} else {
+    // Single Run
+    evolve();
+}
