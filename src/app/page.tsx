@@ -298,11 +298,11 @@ export default function Home() {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <div className="text-center lg:text-left space-y-8">
                                 <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-[1.1]">
-                                    Patience Is Power. <br />
-                                <span className="text-orange-400">Rage Is Weakness.</span>
+                                    Ancient Wisdom. <br />
+                                <span className="text-yellow-500">Modern Fatherhood.</span>
                                 </h1>
                                 <p className="text-xl text-slate-400 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                                    Flip the script on fatherhood. Lead with virtue, not volume.
+                                    The timeless principles of Stoicism, re-engineered for today's dad.
                                 </p>
 
                                 <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
