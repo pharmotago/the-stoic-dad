@@ -299,7 +299,7 @@ export default function Home() {
                             <div className="text-center lg:text-left space-y-8">
                                 <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-[1.1]">
                                     Virtuous Legacy-Builder. <br />
-                                <span className="text-emerald-500">Inner Peace.</span>
+                                <span className="text-amber-500">Inner Peace.</span>
                                 </h1>
                                 <p className="text-xl text-slate-400 leading-relaxed max-w-xl mx-auto lg:mx-0">
                                     Transform your family legacy through the virtuous art of self-mastery and deep emotional discipline.
