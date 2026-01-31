@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import { X, Volume2, VolumeX, Wind } from "lucide-react";
 import { useCourseStore } from "@/store/useCourseStore";
 import { motion, AnimatePresence } from "framer-motion";
-import { haptics } from "@/lib/haptics";
+import { triggerHaptic, HapticPatterns } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 
 const INTERVALS = [
@@ -84,7 +84,7 @@ export function BreathingOverlay() {
     return (
         <div className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
             <button
-                onClick={() => { haptics.medium(); setPanicMode(false); }}
+                onClick={() => { triggerHaptic(HapticPatterns.medium); setPanicMode(false); }}
                 className="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-800 rounded-full"
             >
                 <X className="w-8 h-8" />
@@ -92,7 +92,7 @@ export function BreathingOverlay() {
 
             <div className="absolute top-6 left-6 flex gap-4 no-print">
                 <button
-                    onClick={() => { haptics.light(); setIsPlayingSound(!isPlayingSound); }}
+                    onClick={() => { triggerHaptic(HapticPatterns.light); setIsPlayingSound(!isPlayingSound); }}
                     className={cn("p-3 rounded-full border transition-all", isPlayingSound ? "border-amber-500 text-amber-500 bg-amber-500/10" : "border-slate-800 text-slate-500")}
                 >
                     {isPlayingSound ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
@@ -105,7 +105,7 @@ export function BreathingOverlay() {
                     {INTERVALS.map((item, idx) => (
                         <button
                             key={item.name}
-                            onClick={() => { haptics.light(); setIntervalType(idx); setPhase("Inhale"); setCounter(0); }}
+                            onClick={() => { triggerHaptic(HapticPatterns.light); setIntervalType(idx); setPhase("Inhale"); setCounter(0); }}
                             className={cn(
                                 "text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border transition-all",
                                 intervalType === idx ? "border-amber-500 text-amber-500 bg-amber-500/10" : "border-slate-800 text-slate-500"

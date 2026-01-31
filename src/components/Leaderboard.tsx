@@ -1,147 +1,149 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
-import { Trophy, Users, Star, Medal, Shield } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { UserProfile } from './UserProfile';
+import { Trophy, Medal, Crown, TrendingUp, User } from 'lucide-react';
+import { useLanguageStore } from '@/store/useLanguageStore';
 
-interface LeaderboardEntry {
+interface LeaderboardUser {
+    id: string;
     rank: number;
-    username: string;
-    level: string;
+    name: string;
     xp: number;
+    avatar_color: string;
     streak: number;
     isCurrentUser?: boolean;
+    language: string;
+    flag: string;
 }
 
-const MOCK_LEADERBOARD: LeaderboardEntry[] = [
-    { rank: 1, username: "Marcus A.", level: "Legend", xp: 15400, streak: 420 },
-    { rank: 2, username: "Seneca The Younger", level: "Sage", xp: 12500, streak: 365 },
-    { rank: 3, username: "Epictetus", level: "Sage", xp: 11200, streak: 300 },
-    { rank: 4, username: "Zeno of Citium", level: "Patriarch", xp: 8500, streak: 250 },
-    { rank: 5, username: "Cato", level: "Mentor", xp: 6200, streak: 180 },
-    { rank: 6, username: "Musonius", level: "Stoic", xp: 4500, streak: 120 },
-    { rank: 7, username: "Cleanthes", level: "Philosopher", xp: 3200, streak: 90 },
+// Mock Leaderboard Data
+const MOCK_LEADERBOARD: LeaderboardUser[] = [
+    { id: '1', rank: 1, name: 'LinguaMaster99', xp: 12500, avatar_color: 'bg-purple-500', streak: 45, language: 'Japanese', flag: '🇯🇵' },
+    { id: '2', rank: 2, name: 'PolyglotPrime', xp: 11200, avatar_color: 'bg-blue-500', streak: 32, language: 'Spanish', flag: '🇪🇸' },
+    { id: '3', rank: 3, name: 'SoraExplorer', xp: 9800, avatar_color: 'bg-emerald-500', streak: 12, language: 'French', flag: '🇫🇷' },
+    { id: '4', rank: 4, name: 'ZenLearner', xp: 8500, avatar_color: 'bg-amber-500', streak: 8, language: 'Italian', flag: '🇮🇹' },
+    { id: '5', rank: 5, name: 'ArcticFox', xp: 7200, avatar_color: 'bg-indigo-500', streak: 5, language: 'German', flag: '🇩🇪' },
 ];
 
 interface LeaderboardProps {
-    currentUserXp: number;
-    currentUserStreak: number;
+    currentUserXp?: number;
+    currentUserStreak?: number;
 }
 
-export function Leaderboard({ currentUserXp, currentUserStreak }: LeaderboardProps) {
-    const [filter, setFilter] = useState<'global' | 'friends'>('global');
+export function Leaderboard({ currentUserXp = 1250, currentUserStreak = 3 }: LeaderboardProps) {
+    const { skillLevel } = useLanguageStore();
+    const [timeframe, setTimeframe] = useState<'weekly' | 'all-time'>('weekly');
 
-    // Insert current user into mock data for display
-    const userEntry: LeaderboardEntry = {
-        rank: 99, // Placeholder
-        username: "You",
-        level: "Initiate", // Simplified
-        xp: currentUserXp,
+    // Simulate current user relative to leaderboard
+    const currentUserMock: LeaderboardUser = {
+        id: 'user',
+        rank: 6,
+        name: 'You',
+        xp: currentUserXp, // Matches initial state
+        avatar_color: 'bg-fuchsia-500',
         streak: currentUserStreak,
+        language: 'English',
+        flag: '🌎',
         isCurrentUser: true
     };
 
-    // Sort logic would go here in a real app
-    const displayData = [...MOCK_LEADERBOARD, userEntry].sort((a, b) => b.xp - a.xp).map((entry, index) => ({
-        ...entry,
-        rank: index + 1
-    }));
+    const displayUsers = [...MOCK_LEADERBOARD, currentUserMock];
 
     return (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col h-[600px]">
+        <div className="animate-in fade-in duration-300">
             {/* Header */}
-            <div className="p-6 border-b border-slate-800 bg-slate-900/50">
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="p-3 bg-amber-500/10 rounded-xl">
-                        <Trophy className="w-6 h-6 text-amber-500" />
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-bold text-white">Leaderboard</h2>
-                        <p className="text-slate-400 text-sm">Compare your progress with fellow Stoics</p>
-                    </div>
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                        <Crown className="w-8 h-8 text-amber-400" />
+                        Leaderboard
+                    </h2>
+                    <p className="text-slate-400 mt-1"> compete with learners worldwide.</p>
                 </div>
 
-                {/* Tabs */}
-                <div className="flex p-1 bg-slate-800 rounded-xl">
+                <div className="flex bg-slate-900/50 p-1 rounded-lg border border-slate-800">
                     <button
-                        onClick={() => setFilter('global')}
-                        className={cn(
-                            "flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all",
-                            filter === 'global' ? "bg-slate-700 text-white shadow-sm" : "text-slate-400 hover:text-slate-300"
-                        )}
+                        onClick={() => setTimeframe('weekly')}
+                        className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${timeframe === 'weekly' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                            }`}
                     >
-                        Global
+                        Weekly
                     </button>
                     <button
-                        onClick={() => setFilter('friends')}
-                        className={cn(
-                            "flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all",
-                            filter === 'friends' ? "bg-slate-700 text-white shadow-sm" : "text-slate-400 hover:text-slate-300"
-                        )}
+                        onClick={() => setTimeframe('all-time')}
+                        className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${timeframe === 'all-time' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                            }`}
                     >
-                        Friends
+                        All Time
                     </button>
                 </div>
             </div>
 
-            {/* List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-                {displayData.map((entry) => (
+            {/* League Banner */}
+            <div className="glass-card bg-gradient-to-r from-amber-500/10 to-purple-500/10 border-amber-500/20 p-6 rounded-2xl mb-8 flex items-center justify-between animate-pulse-subtle">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/20">
+                        <Medal className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-white">Gold League</h3>
+                        <p className="text-sm text-amber-200/60">Top 10 advance to Diamond League</p>
+                    </div>
+                </div>
+                <div className="text-right">
+                    <div className="text-2xl font-bold text-white">4 Days</div>
+                    <div className="text-xs text-slate-400 uppercase tracking-wider">Remaining</div>
+                </div>
+            </div>
+
+            {/* Leaderboard List */}
+            <div className="space-y-3">
+                {displayUsers.map((user, index) => (
                     <div
-                        key={entry.username}
-                        className={cn(
-                            "flex items-center gap-4 p-3 rounded-xl border transition-colors",
-                            entry.isCurrentUser
-                                ? "bg-amber-500/10 border-amber-500/30"
-                                : "bg-slate-800/20 border-slate-800/50 hover:bg-slate-800/40"
-                        )}
+                        key={user.id}
+                        className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${user.isCurrentUser
+                            ? 'bg-slate-800/80 border-amber-500/50 shadow-lg shadow-amber-500/5 sticky bottom-4 z-10 backdrop-blur-md'
+                            : 'glass-card border-slate-800/50 hover:bg-slate-800/30'
+                            }`}
                     >
                         {/* Rank */}
-                        <div className={cn(
-                            "w-8 h-8 flex items-center justify-center font-bold rounded-full",
-                            entry.rank === 1 ? "bg-yellow-500/20 text-yellow-500" :
-                                entry.rank === 2 ? "bg-slate-400/20 text-slate-300" :
-                                    entry.rank === 3 ? "bg-amber-700/20 text-amber-600" :
-                                        "text-slate-500"
-                        )}>
-                            {entry.rank <= 3 ? <Medal className="w-5 h-5" /> : entry.rank}
+                        <div className="w-8 flex justify-center font-bold text-lg">
+                            {user.rank === 1 ? <span className="text-amber-400">1</span> :
+                                user.rank === 2 ? <span className="text-slate-300">2</span> :
+                                    user.rank === 3 ? <span className="text-amber-700">3</span> :
+                                        <span className="text-slate-500">{user.rank}</span>}
                         </div>
 
-                        {/* User Info */}
-                        <div className="flex-1 min-w-0">
+                        {/* Avatar */}
+                        <div className={`w-10 h-10 rounded-full ${user.avatar_color} flex items-center justify-center text-white font-bold shadow-inner`}>
+                            {user.name.charAt(0)}
+                        </div>
+
+                        {/* Details */}
+                        <div className="flex-1">
                             <div className="flex items-center gap-2">
-                                <span className={cn(
-                                    "font-bold truncate",
-                                    entry.isCurrentUser ? "text-amber-500" : "text-white"
-                                )}>
-                                    {entry.username}
+                                <span className={`font-bold ${user.isCurrentUser ? 'text-amber-400' : 'text-slate-200'}`}>
+                                    {user.name}
                                 </span>
-                                {entry.isCurrentUser && (
-                                    <span className="text-[10px] bg-amber-500 text-slate-900 px-1.5 rounded font-bold">YOU</span>
-                                )}
+                                {user.isCurrentUser && <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded uppercase font-bold">You</span>}
                             </div>
-                            <div className="text-xs text-slate-500">{entry.level}</div>
+                            <div className="flex items-center gap-3 text-xs text-slate-500">
+                                <span className="flex items-center gap-1">
+                                    {user.flag} {user.language}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                    <TrendingUp className="w-3 h-3 text-emerald-500" />
+                                    {user.streak} day streak
+                                </span>
+                            </div>
                         </div>
 
-                        {/* Stats */}
-                        <div className="text-right">
-                            <div className="text-sm font-bold text-slate-200">{entry.xp.toLocaleString()} XP</div>
-                            <div className="text-xs text-slate-500 flex items-center justify-end gap-1">
-                                <Shield className="w-3 h-3" />
-                                {entry.streak} day streak
-                            </div>
+                        {/* XP */}
+                        <div className="font-mono font-bold text-slate-300">
+                            {user.xp.toLocaleString()} XP
                         </div>
                     </div>
                 ))}
-
-                {filter === 'friends' && (
-                    <div className="text-center py-10 text-slate-500">
-                        <Users className="w-10 h-10 mx-auto mb-3 opacity-20" />
-                        <p>No friends added yet.</p>
-                        <button className="mt-4 text-amber-500 text-sm hover:underline">Invite Friends</button>
-                    </div>
-                )}
             </div>
         </div>
     );

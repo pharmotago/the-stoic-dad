@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Lock, Star, Check, X, CreditCard, ArrowRight } from 'lucide-react';
 import { useToast } from './Toast';
 import { useSound } from '@/lib/sound';
-import { haptics } from '@/lib/haptics';
+import { triggerHaptic, HapticPatterns } from '@/lib/haptics';
 
 interface PremiumModalProps {
     isOpen: boolean;
@@ -24,12 +24,12 @@ export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
             onUnlock();
             onClose();
             play('success');
-            haptics.success();
+            triggerHaptic(HapticPatterns.success);
             showToast('Premium Access Unlocked! Welcome to the inner circle.', 'success');
         } else {
             setError(true);
             play('lock');
-            haptics.error();
+            triggerHaptic(HapticPatterns.error);
             showToast('Invalid access code', 'error');
             setTimeout(() => setError(false), 2000);
         }

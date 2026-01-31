@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Module } from "@/types";
 import { Save, CheckCircle2, Smile, Meh, Frown } from "lucide-react";
 import { useCourseStore } from "@/store/useCourseStore";
-import { haptics } from "@/lib/haptics";
+import { triggerHaptic, HapticPatterns } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 
 interface LessonJournalProps {
@@ -27,7 +27,7 @@ export function LessonJournal({ module, onNext, isExam }: LessonJournalProps) {
 
     const handleSave = () => {
         setIsSaving(true);
-        haptics.medium();
+        triggerHaptic(HapticPatterns.medium);
         saveJournalEntry(module.id, content, mood);
 
         setTimeout(() => {
@@ -73,7 +73,7 @@ export function LessonJournal({ module, onNext, isExam }: LessonJournalProps) {
                         {moods.map((m) => (
                             <button
                                 key={m.id}
-                                onClick={() => { haptics.light(); setMood(m.id); }}
+                                onClick={() => { triggerHaptic(HapticPatterns.light); setMood(m.id); }}
                                 className={cn(
                                     "flex flex-col items-center gap-2 p-3 rounded-xl border transition-all flex-1",
                                     mood === m.id

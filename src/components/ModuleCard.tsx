@@ -3,7 +3,7 @@ import { Lock, CheckCircle, Circle, PlayCircle, Clock } from 'lucide-react';
 import { Module } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
 import { useSound } from '@/lib/sound';
-import { haptics } from '@/lib/haptics';
+import { triggerHaptic, HapticPatterns } from '@/lib/haptics';
 
 interface ModuleCardProps {
     module: Module;
@@ -19,10 +19,10 @@ export const ModuleCard = memo(function ModuleCard({ module, isActive, isComplet
     const handleClick = () => {
         if (isLocked) {
             play('lock');
-            haptics.error();
+            triggerHaptic(HapticPatterns.error);
         } else {
             play('click');
-            haptics.tap();
+            triggerHaptic(HapticPatterns.light);
             onClick();
         }
     };

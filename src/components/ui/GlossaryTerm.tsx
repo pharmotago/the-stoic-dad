@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HelpCircle } from "lucide-react";
-import { haptics } from "@/lib/haptics";
+import { triggerHaptic, HapticPatterns } from "@/lib/haptics";
 
 const GLOSSARY: Record<string, string> = {
     "Eudaimonia": "Often translated as 'happiness' or 'flourishing', it is the state of living in accordance with virtue and reason.",
@@ -24,7 +24,7 @@ export function GlossaryTerm({ term }: { term: keyof typeof GLOSSARY | string })
             <button
                 onMouseEnter={() => setIsOpen(true)}
                 onMouseLeave={() => setIsOpen(false)}
-                onClick={() => { haptics.light(); setIsOpen(!isOpen); }}
+                onClick={() => { triggerHaptic(HapticPatterns.light); setIsOpen(!isOpen); }}
                 className="text-amber-500 border-b border-dotted border-amber-500/50 hover:border-amber-500 transition-all cursor-help"
             >
                 {term}

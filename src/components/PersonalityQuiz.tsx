@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, ArrowRight, Brain, Shield, Scale, Target } from "lucide-react";
-import { haptics } from "@/lib/haptics";
+import { triggerHaptic, HapticPatterns } from "@/lib/haptics";
 
 export function PersonalityQuiz() {
     const [isOpen, setIsOpen] = useState(false);
@@ -22,7 +22,7 @@ export function PersonalityQuiz() {
     ];
 
     const handleNext = (idx: number) => {
-        haptics.light();
+        triggerHaptic(HapticPatterns.light);
         if (step < questions.length - 1) {
             setStep(step + 1);
         } else {
@@ -34,7 +34,7 @@ export function PersonalityQuiz() {
         <div className="mb-12">
             {!isOpen ? (
                 <button
-                    onClick={() => { haptics.medium(); setIsOpen(true); }}
+                    onClick={() => { triggerHaptic(HapticPatterns.medium); setIsOpen(true); }}
                     className="w-full bg-gradient-to-r from-amber-500 to-amber-600 p-8 rounded-3xl flex items-center justify-between group overflow-hidden relative"
                 >
                     <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Module } from "@/types";
 import { ArrowRight, Clock, Pause, Play } from "lucide-react";
 import { ProgressBar } from "./ui/ProgressBar";
-import { haptics } from "@/lib/haptics";
+import { triggerHaptic, HapticPatterns } from "@/lib/haptics";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { GlossaryTerm } from "./ui/GlossaryTerm";
@@ -115,7 +115,7 @@ export function LessonReader({ module, onNext }: LessonReaderProps) {
             <div className="flex justify-end mt-12 pb-12">
                 <button
                     onClick={() => {
-                        haptics.light();
+                        triggerHaptic(HapticPatterns.light);
                         onNext();
                     }}
                     className="flex items-center text-amber-500 font-bold group"
