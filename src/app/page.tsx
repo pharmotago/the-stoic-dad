@@ -298,11 +298,11 @@ export default function Home() {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <div className="text-center lg:text-left space-y-8">
                                 <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-[1.1]">
-                                    The Stoic Dad. <br />
-                                <span className="text-indigo-400">A Pillar Of Strength.</span>
+                                    Modern Master. <br />
+                                <span className="text-red-500">Inner Peace.</span>
                                 </h1>
                                 <p className="text-xl text-slate-400 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                                    How to stay solid as a rock when everyone else is losing their heads.
+                                    Transform your family legacy through the modern art of self-mastery and deep emotional discipline.
                                 </p>
 
                                 <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
