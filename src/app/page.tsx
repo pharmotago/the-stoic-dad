@@ -298,11 +298,11 @@ export default function Home() {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <div className="text-center lg:text-left space-y-8">
                                 <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-[1.1]">
-                                    Master Your Temper. <br />
-                                <span className="text-emerald-500">Build Your Legacy.</span>
+                                    Strength In Silence. <br />
+                                <span className="text-slate-400">Power In Calm.</span>
                                 </h1>
                                 <p className="text-xl text-slate-400 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                                    Ancient Stoic strategies applied to modern fatherhood. Reclaim your calm in 5 days.
+                                    The quiet revolution in conscious parenting starts here.
                                 </p>
 
                                 <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
