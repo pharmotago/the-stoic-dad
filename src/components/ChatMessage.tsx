@@ -25,7 +25,7 @@ export function ChatMessage({ message, targetLanguageName, languageCode = 'en', 
     const isUser = message.role === 'user';
 
     const handleSpeak = () => {
-        voiceService.speak(message.content, languageCode);
+        voiceService.speak(message.content);
     };
 
     return (
