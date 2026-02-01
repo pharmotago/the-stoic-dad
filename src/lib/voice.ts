@@ -1,5 +1,5 @@
 /**
- * Voice Synthesis Service
+ * Voice Synthesis Service (Ported from Language Coach)
  * Wrapper around Web Speech API for Text-to-Speech
  */
 
@@ -35,39 +35,47 @@ class VoiceService {
         return this.voices;
     }
 
-    public getVoiceForLanguage(langCode: string): SpeechSynthesisVoice | null {
-        // Try to match exact locale first (e.g. 'es-ES')
-        let voice = this.voices.find(v => v.lang === langCode);
+    /**
+     * Tries to find a deep, male British or English voice for Marcus Aurelius
+     */
+    public getMarcusVoice(): SpeechSynthesisVoice | null {
+        // 1. Look for specific "Male" and "English" voices
+        let voice = this.voices.find(v => v.name.includes('Male') && v.lang.startsWith('en'));
 
-        // Fallback to language code only (e.g. 'es')
+        // 2. Look for "Google UK English Male" (Common on Chrome)
         if (!voice) {
-            const shortCode = langCode.split('-')[0];
-            voice = this.voices.find(v => v.lang.startsWith(shortCode));
+            voice = this.voices.find(v => v.name.includes('United Kingdom') || v.name.includes('UK'));
         }
 
-        // Prefer "Google" voices if available (usually higher quality on Chrome)
-        if (!voice && this.voices.length > 0) {
-            const premiumVoice = this.voices.find(v => v.lang.startsWith(langCode.split('-')[0]) && v.name.includes('Google'));
-            if (premiumVoice) return premiumVoice;
+        // 3. Fallback to any English voice
+        if (!voice) {
+            voice = this.voices.find(v => v.lang.startsWith('en'));
         }
 
         return voice || this.voices[0] || null;
     }
 
-    public speak(text: string, langCode: string, options: VoiceOptions = {}) {
-        if (!this.synthesis) return;
+    public speak(text: string, options: VoiceOptions = {}) {
+        if (!this.synthesis) {
+            console.error('[VoiceService] SpeechSynthesis not supported');
+            return;
+        }
 
         // Cancel current speech
         this.synthesis.cancel();
 
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = langCode;
-        utterance.rate = options.rate || 1.0;
-        utterance.pitch = options.pitch || 1.0;
+        utterance.lang = 'en-US'; // Default to English for Marcus
+
+        // Stoic settings: Slower, slightly lower pitch
+        utterance.rate = options.rate || 0.9;
+        utterance.pitch = options.pitch || 0.9;
         utterance.volume = options.volume || 1.0;
 
-        const voice = options.voice || this.getVoiceForLanguage(langCode);
+        const voice = options.voice || this.getMarcusVoice();
+
         if (voice) {
+            console.log(`[VoiceService] Marcus speaking with: ${voice.name} (${voice.lang})`);
             utterance.voice = voice;
         }
 

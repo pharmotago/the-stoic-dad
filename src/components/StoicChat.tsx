@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Sparkles, User, Bot } from "lucide-react";
+import { MessageCircle, X, Send, Sparkles, User, Bot, Volume2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { model } from "@/lib/gemini";
 import { cn } from "@/lib/utils";
@@ -97,13 +97,25 @@ export function StoicChat() {
                                     )}>
                                         {msg.role === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4 text-amber-500" />}
                                     </div>
+                                    import {voiceService} from "@/lib/voice";
+
+                                    // ... inside StoicChat ...
                                     <div className={cn(
-                                        "p-3 rounded-2xl text-sm leading-relaxed",
+                                        "p-3 rounded-2xl text-sm leading-relaxed relative group",
                                         msg.role === "user"
                                             ? "bg-slate-800 text-slate-100 rounded-tr-none"
                                             : "bg-amber-500/10 text-amber-100/90 rounded-tl-none border border-amber-500/10"
                                     )}>
                                         {msg.text}
+                                        {msg.role === "model" && (
+                                            <button
+                                                onClick={() => voiceService.speak(msg.text)}
+                                                className="absolute -bottom-6 left-0 opacity-0 group-hover:opacity-100 transition-opacity text-amber-500/50 hover:text-amber-500 p-1"
+                                                title="Listen to Marcus"
+                                            >
+                                                <Icons.Volume2 className="w-4 h-4" />
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))}
