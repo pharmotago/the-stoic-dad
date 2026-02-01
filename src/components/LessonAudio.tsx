@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Headphones, Play, PenTool } from "lucide-react";
-import { Module } from "@/types";
+import { Module } from "@/lib/schemas";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useCourseStore } from "@/store/useCourseStore";
+import { audioService, VoicePersona } from "@/lib/audioService";
 
 interface LessonAudioProps {
     module: Module;
@@ -14,23 +15,33 @@ export function LessonAudio({ module, onNext }: LessonAudioProps) {
     const { theme } = useCourseStore();
     const [isPlaying, setIsPlaying] = useState(false);
     const [audioProgress, setAudioProgress] = useState(0);
+    const [persona, setPersona] = useState<VoicePersona>('mentor');
 
-    // Audio Simulation Logic
-    useEffect(() => {
-        let interval: NodeJS.Timeout;
+    const handleTogglePlay = () => {
         if (isPlaying) {
-            interval = setInterval(() => {
-                setAudioProgress((prev) => {
-                    if (prev >= 100) {
-                        setIsPlaying(false);
-                        return 100;
-                    }
-                    return prev + 0.5;
-                });
-            }, 100);
+            audioService.stop();
+            setIsPlaying(false);
+            setAudioProgress(0);
+        } else {
+            setIsPlaying(true);
+            audioService.speak(
+                module.content.full_lesson_content,
+                persona,
+                (index) => {
+                    const progress = (index / module.content.full_lesson_content.length) * 100;
+                    setAudioProgress(progress);
+                },
+                () => {
+                    setIsPlaying(false);
+                    setAudioProgress(100);
+                }
+            );
         }
-        return () => clearInterval(interval);
-    }, [isPlaying]);
+    };
+
+    useEffect(() => {
+        return () => audioService.stop();
+    }, []);
 
     const formatTime = (percent: number) => {
         const totalSeconds = 225; // 3:45 (Simulated duration)
@@ -78,7 +89,26 @@ export function LessonAudio({ module, onNext }: LessonAudioProps) {
                 <Headphones className={`w-12 h-12 text-amber-500 relative z-10 transition-all duration-500 ${isPlaying ? "scale-110 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]" : "opacity-80"}`} />
             </div>
             <h3 className={cn("text-xl font-bold mb-2 transition-colors", headingColor)}>{module.title} (Audio)</h3>
-            <p className={cn("text-sm mb-8 transition-colors", subColor)}>Listen to the daily lesson on the go.</p>
+            <p className={cn("text-sm mb-6 transition-colors", subColor)}>Listen to the daily lesson on the go.</p>
+
+            {/* Persona Selector */}
+            <div className="flex gap-2 mb-8">
+                {(['mentor', 'philosopher', 'warrior'] as VoicePersona[]).map((p) => (
+                    <button
+                        key={p}
+                        onClick={() => setPersona(p)}
+                        disabled={isPlaying}
+                        className={cn(
+                            "px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all border",
+                            persona === p
+                                ? "bg-amber-500 border-amber-500 text-slate-900"
+                                : "bg-slate-900/50 border-slate-700 text-slate-400 hover:border-slate-500 disabled:opacity-50"
+                        )}
+                    >
+                        {p}
+                    </button>
+                ))}
+            </div>
 
             {module.spotifyId ? (
                 <div className="w-full max-w-sm">
@@ -94,7 +124,7 @@ export function LessonAudio({ module, onNext }: LessonAudioProps) {
                     ></iframe>
                 </div>
             ) : (
-                <div className="w-full max-w-sm bg-slate-700/50 rounded-full h-16 flex items-center px-4 relative overflow-hidden group cursor-pointer hover:bg-slate-700 transition-colors" onClick={() => setIsPlaying(!isPlaying)}>
+                <div className="w-full max-w-sm bg-slate-700/50 rounded-full h-16 flex items-center px-4 relative overflow-hidden group cursor-pointer hover:bg-slate-700 transition-colors" onClick={handleTogglePlay}>
                     <button
                         aria-label={isPlaying ? "Pause Audio" : "Play Audio"}
                         className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center text-slate-900 hover:scale-105 transition-transform z-10 shadow-lg shadow-amber-500/20"

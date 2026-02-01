@@ -3,35 +3,37 @@
 import React, { useState, useEffect } from 'react';
 import courseData from '@/data';
 import { Header } from '@/components/Header';
-import { EnhancedHeader } from '@/components/EnhancedHeader';
+import { DynamicHeader } from '@/components/DynamicHeader';
 import { ModuleCard } from '@/components/ModuleCard';
 import { LessonView } from '@/components/LessonView';
 
-import { StreakDisplay } from '@/components/StreakTracker';
-import { ProgressRing } from '@/components/ProgressRing';
-import { EmergencyToolkit } from '@/components/EmergencyToolkit';
-import { StatsPanel } from '@/components/StatsPanel';
-import { WelcomeModal } from '@/components/WelcomeModal';
-import { AchievementBadges } from '@/components/AchievementBadges';
-import { QuickActions } from '@/components/QuickActions';
-import { DailyQuote } from '@/components/DailyQuote';
-import { SettingsPanel } from '@/components/SettingsPanel';
-import { LoadingSkeleton } from '@/components/LoadingSkeleton';
-import { MobileMenu } from '@/components/MobileMenu';
-import { AICoach } from '@/components/AICoach';
-import { LeadGenModal } from '@/components/LeadGenModal';
-import { ModuleSearch } from '@/components/ModuleSearch';
-import { TutorialOverlay } from '@/components/TutorialOverlay';
-import { CommunityModal } from '@/components/CommunityModal';
-import { ShareModal } from '@/components/ShareModal';
-import { PremiumModal } from '@/components/PremiumModal';
-import { Hero3DPreview } from '@/components/Hero3DPreview';
-import { PricingTable } from '@/components/PricingTable';
-import { FAQSection } from '@/components/FAQSection';
-import { StickyPromo } from '@/components/StickyPromo';
 import { XP_CONSTANTS, calculateLevel } from '@/lib/gamification';
 import dynamic from 'next/dynamic';
 import { analytics } from '@/lib/analytics';
+
+// Performance: Dynamic Imports for heavy components and modals
+const EmergencyToolkit = dynamic(() => import('@/components/EmergencyToolkit').then(mod => mod.EmergencyToolkit), { ssr: false });
+const StatsPanel = dynamic(() => import('@/components/StatsPanel').then(mod => mod.StatsPanel), { ssr: false });
+const WelcomeModal = dynamic(() => import('@/components/WelcomeModal').then(mod => mod.WelcomeModal), { ssr: false });
+const AchievementBadges = dynamic(() => import('@/components/AchievementBadges').then(mod => mod.AchievementBadges));
+const SettingsPanel = dynamic(() => import('@/components/SettingsPanel').then(mod => mod.SettingsPanel), { ssr: false });
+const AICoach = dynamic(() => import('@/components/AICoach').then(mod => mod.AICoach), { ssr: false });
+const LeadGenModal = dynamic(() => import('@/components/LeadGenModal').then(mod => mod.LeadGenModal), { ssr: false });
+const ModuleSearch = dynamic(() => import('@/components/ModuleSearch').then(mod => mod.ModuleSearch), { ssr: false });
+const TutorialOverlay = dynamic(() => import('@/components/TutorialOverlay').then(mod => mod.TutorialOverlay), { ssr: false });
+const CommunityModal = dynamic(() => import('@/components/CommunityModal').then(mod => mod.CommunityModal), { ssr: false });
+const ShareModal = dynamic(() => import('@/components/ShareModal').then(mod => mod.ShareModal), { ssr: false });
+const PremiumModal = dynamic(() => import('@/components/PremiumModal').then(mod => mod.PremiumModal), { ssr: false });
+const Hero3DPreview = dynamic(() => import('@/components/Hero3DPreview').then(mod => mod.Hero3DPreview));
+const PricingTable = dynamic(() => import('@/components/PricingTable').then(mod => mod.PricingTable));
+const FAQSection = dynamic(() => import('@/components/FAQSection').then(mod => mod.FAQSection));
+const StickyPromo = dynamic(() => import('@/components/StickyPromo').then(mod => mod.StickyPromo), { ssr: false });
+const StreakDisplay = dynamic(() => import('@/components/StreakTracker').then(mod => mod.StreakDisplay));
+const ProgressRing = dynamic(() => import('@/components/ProgressRing').then(mod => mod.ProgressRing));
+const DailyQuote = dynamic(() => import('@/components/DailyQuote').then(mod => mod.DailyQuote));
+const QuickActions = dynamic(() => import('@/components/QuickActions').then(mod => mod.QuickActions));
+const LoadingSkeleton = dynamic(() => import('@/components/LoadingSkeleton').then(mod => mod.LoadingSkeleton));
+const MobileMenu = dynamic(() => import('@/components/MobileMenu').then(mod => mod.MobileMenu), { ssr: false });
 
 // Code Splitting for heavy modals
 const QuizModal = dynamic(() => import('@/components/QuizModal').then(mod => mod.QuizModal), {
@@ -258,21 +260,23 @@ export default function Home() {
         <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-amber-500/30">
             {ToastComponent}
 
-            {/* Conditional Header: simplified on landing to avoid distraction? User asked for Hero rewrite of Home. Kept standard for now for consistency */}
-            <EnhancedHeader
+            {/* Dynamic Imperial Header */}
+            <DynamicHeader
                 completionPercentage={progress}
                 currentStreak={currentStreak}
                 completedCount={completedModules.length}
                 totalCount={courseData.length}
+                onMobileMenuToggle={() => setShowMobileMenu(true)}
             />
 
             {/* Emergency FAB */}
             <button
                 onClick={() => setShowEmergency(true)}
-                className="fixed bottom-6 right-6 z-40 p-4 bg-red-600 hover:bg-red-500 text-white rounded-full shadow-2xl transform hover:scale-110 transition-all duration-200 animate-pulse"
+                className="fixed bottom-6 right-6 z-40 p-4 bg-red-600 hover:bg-red-500 text-white rounded-full shadow-2xl transform hover:scale-110 transition-all duration-200 animate-pulse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                 title="Emergency Protocols"
+                aria-label="Open Emergency Protocols"
             >
-                <Shield className="w-6 h-6" />
+                <Shield className="w-6 h-6" aria-hidden="true" />
             </button>
 
             <main className="container mx-auto px-4 py-8 max-w-6xl">
@@ -299,7 +303,7 @@ export default function Home() {
                             <div className="text-center lg:text-left space-y-8">
                                 <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-[1.1]">
                                     Unshakable Father. <br />
-                                <span className="text-cyan-400">Inner Peace.</span>
+                                    <span className="text-cyan-400">Inner Peace.</span>
                                 </h1>
                                 <p className="text-xl text-slate-400 leading-relaxed max-w-xl mx-auto lg:mx-0">
                                     Transform your family legacy through the unshakable art of self-mastery and deep emotional discipline.

@@ -3,16 +3,20 @@
 import { useCourseStore } from "@/store/useCourseStore";
 import courseData from "@/data";
 import { Footer } from "@/components/Footer";
-import { ArrowLeft, PenTool, Search, Calendar, Hash, Smile, Meh, Frown, Download, Printer, FileDown, BookOpen } from "lucide-react";
+import { ArrowLeft, PenTool, Search, Calendar, Hash, Smile, Meh, Frown, Download, Printer, FileDown, BookOpen, BrainCircuit, X, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { triggerHaptic, HapticPatterns } from "@/lib/haptics";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useRouter } from "next/navigation";
+import { journalModel } from "@/lib/gemini";
 
 export default function JournalPage() {
-    const { journalEntries, isLoaded, initializeStore, theme } = useCourseStore();
+    const { journalEntries, isLoaded, initializeStore, theme, saveInsight, insights } = useCourseStore();
     const [mounted, setMounted] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [analysis, setAnalysis] = useState<string | null>(null);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [showHistory, setShowHistory] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -54,6 +58,24 @@ export default function JournalPage() {
 
     const totalWords = entries.reduce((acc, curr) => acc + curr.wordCount, 0);
 
+    const handleAnalyze = async () => {
+        if (entries.length === 0) return;
+        setIsAnalyzing(true);
+        triggerHaptic(HapticPatterns.medium);
+
+        try {
+            const recentEntries = entries.slice(0, 5).map(e => `Day ${e.id} (${e.mood}): ${e.content}`).join("\n\n");
+            const result = await journalModel.generateContent(`Analyze these journal entries:\n\n${recentEntries}`);
+            const text = result.response.text();
+            setAnalysis(text);
+            saveInsight(text); // Save to history
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
+
     const exportToMarkdown = () => {
         triggerHaptic(HapticPatterns.medium);
         const md = entries.map(e => `## Day ${e.id}: ${e.title}\n*Date: ${new Date(e.timestamp).toLocaleDateString()} | Mood: ${e.mood}*\n\n${e.content}\n\n---`).join("\n\n");
@@ -90,6 +112,57 @@ export default function JournalPage() {
 
     return (
         <main className={`min-h-screen flex flex-col ${themeClasses} transition-colors duration-700`}>
+            {/* Analysis Modal */}
+            {analysis && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-slate-900 border border-amber-500/30 max-w-lg w-full rounded-2xl p-6 shadow-2xl relative max-h-[80vh] flex flex-col">
+                        <button onClick={() => setAnalysis(null)} className="absolute top-4 right-4 text-slate-500 hover:text-white">
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        <div className="flex items-center gap-3 mb-4 text-amber-500">
+                            <BrainCircuit className="w-6 h-6" />
+                            <h3 className="text-xl font-bold">Stoic Insight</h3>
+                        </div>
+
+                        <div className="flex gap-4 border-b border-slate-800 mb-4 pb-2">
+                            <button
+                                onClick={() => setShowHistory(false)}
+                                className={`text-sm font-bold uppercase tracking-wider pb-1 ${!showHistory ? 'text-amber-500 border-b-2 border-amber-500' : 'text-slate-500 hover:text-slate-300'}`}
+                            >
+                                Current Analysis
+                            </button>
+                            <button
+                                onClick={() => setShowHistory(true)}
+                                className={`text-sm font-bold uppercase tracking-wider pb-1 ${showHistory ? 'text-amber-500 border-b-2 border-amber-500' : 'text-slate-500 hover:text-slate-300'}`}
+                            >
+                                Archive ({insights.length})
+                            </button>
+                        </div>
+
+                        <div className="overflow-y-auto flex-1 pr-2">
+                            {!showHistory ? (
+                                <div className="prose prose-invert prose-amber max-w-none text-sm leading-relaxed whitespace-pre-wrap animate-in fade-in">
+                                    {analysis}
+                                </div>
+                            ) : (
+                                <div className="space-y-4 animate-in fade-in">
+                                    {insights.length === 0 && <p className="text-slate-500 italic">No past insights archived.</p>}
+                                    {insights.map((insight) => (
+                                        <div key={insight.id} className="p-4 rounded-xl bg-slate-800/50 border border-slate-700">
+                                            <div className="text-xs text-amber-500 mb-2 font-mono">{new Date(insight.timestamp).toLocaleDateString()}</div>
+                                            <div className="text-sm text-slate-300 whitespace-pre-wrap line-clamp-6 hover:line-clamp-none transition-all cursor-pointer">
+                                                {insight.content}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex-1 max-w-2xl mx-auto w-full p-6 md:p-12">
 
                 {/* Header */}
@@ -109,6 +182,14 @@ export default function JournalPage() {
                     <div className="flex justify-between items-start mb-4">
                         <h1 className={`text-3xl font-bold ${accentText}`}>Your Reflections</h1>
                         <div className="flex gap-2 no-print">
+                            <button
+                                onClick={handleAnalyze}
+                                disabled={isAnalyzing || entries.length === 0}
+                                title="AI Analysis"
+                                className="p-2 bg-amber-500/10 hover:bg-amber-500/20 rounded-lg text-amber-500 border border-amber-500/30 transition-all disabled:opacity-50"
+                            >
+                                {isAnalyzing ? <div className="w-4 h-4 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                            </button>
                             <button onClick={handlePrint} title="Print Journal" className="p-2 bg-slate-800/50 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-amber-500 transition-colors">
                                 <Printer className="w-4 h-4" />
                             </button>

@@ -31,8 +31,13 @@ export const ModuleCard = memo(function ModuleCard({ module, isActive, isComplet
         <div
             onClick={handleClick}
             onMouseEnter={() => !isLocked && play('hover')}
+            onKeyDown={(e) => { if (!isLocked && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); handleClick(); } }}
+            role="button"
+            tabIndex={isLocked ? -1 : 0}
+            aria-disabled={isLocked}
+            aria-label={`${module.title}, Day ${module.id}. ${isCompleted ? 'Completed' : isLocked ? 'Locked' : 'Available'}. ${module.summary}`}
             className={cn(
-                "relative p-5 rounded-2xl border transition-all duration-500 group cursor-pointer overflow-hidden",
+                "relative p-5 rounded-2xl border transition-all duration-500 group cursor-pointer overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500",
                 isActive
                     ? "bg-gradient-to-br from-slate-800 to-slate-900 border-amber-500/50 shadow-2xl shadow-amber-900/10 ring-1 ring-amber-500/10 scale-[1.02]"
                     : "bg-slate-900/40 border-slate-800 hover:border-slate-700 hover:bg-slate-800/60 hover:-translate-y-1 hover:shadow-xl",

@@ -10,12 +10,19 @@ export interface JournalEntry {
     wordCount: number;
 }
 
+export interface Insight {
+    id: string;
+    content: string;
+    timestamp: string;
+}
+
 interface CourseState {
     unlockedIndex: number;
     activeModule: Module | null;
     isLoaded: boolean;
     isPanicMode: boolean;
     journalEntries: Record<number, JournalEntry>; // Map moduleId -> Entry
+    insights: Insight[]; // New: AI Insights
     completedDates: string[]; // ISO Date strings 'YYYY-MM-DD'
     theme: 'dark' | 'paper';
     focusMode: boolean;
@@ -27,6 +34,7 @@ interface CourseState {
     resetProgress: () => void;
     setPanicMode: (active: boolean) => void;
     saveJournalEntry: (moduleId: number, content: string, mood?: string) => void;
+    saveInsight: (content: string) => void; // New Action
     markDateComplete: () => void;
     setTheme: (theme: 'dark' | 'paper') => void;
     setFocusMode: (active: boolean) => void;
@@ -42,6 +50,7 @@ export const useCourseStore = create<CourseState>()(
             isLoaded: false,
             isPanicMode: false,
             journalEntries: {},
+            insights: [],
             completedDates: [],
             theme: 'dark',
             focusMode: false,
@@ -56,7 +65,7 @@ export const useCourseStore = create<CourseState>()(
 
             setActiveModule: (module: Module | null) => set({ activeModule: module }),
 
-            resetProgress: () => set({ unlockedIndex: 0, activeModule: null, journalEntries: {}, completedDates: [] }),
+            resetProgress: () => set({ unlockedIndex: 0, activeModule: null, journalEntries: {}, insights: [], completedDates: [] }),
 
             setPanicMode: (active: boolean) => set({ isPanicMode: active }),
 
@@ -71,6 +80,14 @@ export const useCourseStore = create<CourseState>()(
                     journalEntries: { ...state.journalEntries, [moduleId]: entry }
                 };
             }),
+
+            saveInsight: (content) => set((state) => ({
+                insights: [{
+                    id: Date.now().toString(),
+                    content,
+                    timestamp: new Date().toISOString()
+                }, ...state.insights]
+            })),
 
             markDateComplete: () => set((state) => {
                 const today = new Date().toISOString().split('T')[0];
@@ -92,6 +109,7 @@ export const useCourseStore = create<CourseState>()(
             partialize: (state) => ({
                 unlockedIndex: state.unlockedIndex,
                 journalEntries: state.journalEntries,
+                insights: state.insights, // Persist insights
                 completedDates: state.completedDates,
                 theme: state.theme
             }),

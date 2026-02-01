@@ -9,6 +9,8 @@ import { module7 } from "./modules/module7";
 import { module8 } from "./modules/module8";
 import { module9 } from "./modules/module9";
 import { module10 } from "./modules/module10";
+import { module11 } from "./modules/module11";
+import { module12 } from "./modules/module12";
 
 const courseData: Module[] = [
     module1,
@@ -20,7 +22,9 @@ const courseData: Module[] = [
     module7,
     module8,
     module9,
-    module10
+    module10,
+    module11,
+    module12
 ];
 
 export default courseData;

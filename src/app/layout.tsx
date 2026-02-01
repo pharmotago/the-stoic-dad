@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ClientLayout } from "@/components/ClientLayout";
+import { StoicChat } from "@/components/StoicChat";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -11,6 +13,20 @@ export const metadata: Metadata = {
     description: "Daily parenting challenges for the modern Stoic.",
     manifest: "/manifest.json",
     metadataBase: new URL('https://thestoicdad.com'),
+    themeColor: [
+        { media: '(prefers-color-scheme: dark)', color: '#020617' },
+    ],
+    viewport: {
+        width: 'device-width',
+        initialScale: 1,
+        maximumScale: 1,
+        userScalable: false,
+    },
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: 'black-translucent',
+        title: 'Stoic Dad',
+    },
     openGraph: {
         title: "The Stoic Dad",
         description: "Master your reactions, guide your family. Unlock one ancient lesson at a time.",
@@ -30,6 +46,8 @@ export const metadata: Metadata = {
 
 import { SoundProvider } from "@/lib/sound";
 
+
+
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -37,10 +55,13 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={cn(inter.className, "antialiased")}>
+            <body className={cn(inter.className, "antialiased font-sans")}>
                 <ErrorBoundary>
                     <SoundProvider>
-                        {children}
+                        <ClientLayout>
+                            {children}
+                        </ClientLayout>
+                        <StoicChat />
                     </SoundProvider>
                 </ErrorBoundary>
             </body>

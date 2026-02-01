@@ -5,7 +5,7 @@
 // We will use AudioContext for procedural sounds to keep external deps low
 // But we'll structure it to allow file assets later if needed.
 
-export type SoundType = 'send' | 'receive' | 'success' | 'error' | 'click' | 'hover' | 'unlock';
+export type SoundType = 'send' | 'receive' | 'success' | 'error' | 'click' | 'hover' | 'unlock' | 'ambient_reflect';
 
 class SoundService {
     private audioContext: AudioContext | null = null;
@@ -90,10 +90,52 @@ class SoundService {
                 // Magical arpeggio
                 const now = 0;
                 [440, 554, 659, 880, 1108, 1318, 1760].forEach((freq, i) => {
-                    this.playTone(freq, 'sine', 0.3, now + (i * 0.08));
+                    this.playTone(freq, 'sine', 0.5, now + (i * 0.06));
                 });
                 break;
+            case 'ambient_reflect':
+                // Submarine-like deep atmospheric drone (procedurally simulated)
+                this.playAtmosphericDrone();
+                break;
         }
+    }
+
+    private playAtmosphericDrone() {
+        if (!this.audioContext || this.isMuted) return;
+
+        const masterGain = this.audioContext.createGain();
+        masterGain.gain.setValueAtTime(0, this.audioContext.currentTime);
+        masterGain.gain.linearRampToValueAtTime(this.volume * 0.05, this.audioContext.currentTime + 2);
+        masterGain.connect(this.audioContext.destination);
+
+        const createOsc = (freq: number, type: OscillatorType, detour: number) => {
+            if (!this.audioContext) return;
+            const osc = this.audioContext.createOscillator();
+            const g = this.audioContext.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+            osc.detune.setValueAtTime(detour, this.audioContext.currentTime);
+            g.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+            osc.connect(g);
+            g.connect(masterGain);
+            osc.start();
+            return { osc, g };
+        };
+
+        const oscs = [
+            createOsc(60, 'sine', 0),
+            createOsc(62, 'sine', 5),
+            createOsc(120, 'triangle', -5)
+        ];
+
+        // Stop after 30 seconds
+        setTimeout(() => {
+            if (!this.audioContext) return;
+            masterGain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 3);
+            setTimeout(() => {
+                oscs.forEach(o => o?.osc.stop());
+            }, 3001);
+        }, 30000);
     }
 }
 

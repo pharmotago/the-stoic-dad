@@ -1,7 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export type SoundType = 'click' | 'success' | 'lock' | 'unlock' | 'hover';
+export type SoundType = 'click' | 'success' | 'lock' | 'unlock' | 'hover' | 'error';
 
 interface SoundContextType {
     isMuted: boolean;
@@ -74,6 +74,9 @@ export function SoundProvider({ children }: { children: ReactNode }) {
                     break;
                 case 'unlock':
                     createTone(1000, 'sine', 0.3, 0.1);
+                    break;
+                case 'error':
+                    createTone(150, 'square', 0.2, 0.1);
                     break;
             }
         } catch (e) {

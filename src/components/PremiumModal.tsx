@@ -3,6 +3,8 @@ import { Lock, Star, Check, X, CreditCard, ArrowRight } from 'lucide-react';
 import { useToast } from './Toast';
 import { useSound } from '@/lib/sound';
 import { triggerHaptic, HapticPatterns } from '@/lib/haptics';
+import { getStripe, createCheckoutSession } from '@/lib/stripe';
+import { analytics } from '@/lib/analytics';
 
 interface PremiumModalProps {
     isOpen: boolean;
@@ -13,8 +15,33 @@ interface PremiumModalProps {
 export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
     const [code, setCode] = useState('');
     const [error, setError] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
     const { showToast } = useToast();
     const { play } = useSound();
+
+    const handleStripeCheckout = async () => {
+        try {
+            setIsProcessing(true);
+            play('click');
+            triggerHaptic(HapticPatterns.light);
+
+            const { sessionId } = await createCheckoutSession('price_stoic_lifetime');
+            analytics.track('checkout_initiated', { priceId: 'price_stoic_lifetime' });
+            const stripe = await getStripe();
+
+            if (stripe) {
+                const { error } = await (stripe as any).redirectToCheckout({ sessionId });
+                if (error) throw error;
+            }
+        } catch (err: any) {
+            console.error('Stripe error:', err);
+            showToast('Checkout failed. Please try again.', 'error');
+            play('error');
+            triggerHaptic(HapticPatterns.error);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
 
     if (!isOpen) return null;
 
@@ -110,16 +137,25 @@ export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
                     </div>
 
                     {/* CTA */}
-                    <a
-                        href="https://mcjp.gumroad.com/l/uobtt"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group w-full flex items-center justify-center gap-3 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg shadow-amber-500/20"
-                    >
-                        <Star className="w-5 h-5 fill-slate-900" />
-                        <span>Get Lifetime Access for $29</span>
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </a>
+                    <div className="space-y-3">
+                        <button
+                            onClick={handleStripeCheckout}
+                            disabled={isProcessing}
+                            className="group w-full flex items-center justify-center gap-3 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isProcessing ? (
+                                <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                                <CreditCard className="w-5 h-5" />
+                            )}
+                            <span>Get Lifetime Access for $29</span>
+                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </button>
+
+                        <p className="text-center text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+                            Powered by Stripe • Secure Encryption
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
