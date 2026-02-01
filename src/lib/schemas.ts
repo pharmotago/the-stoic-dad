@@ -29,6 +29,7 @@ export const ModuleSchema = z.object({
     summary: z.string(),
     isLocked: z.boolean(),
     spotifyId: z.string().optional(),
+    audioUrl: z.string().optional(),
     readTime: z.number().optional(),
     badge: z.string().optional(),
     content: ModuleContentSchema,

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Headphones, Play, PenTool } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Headphones, Play, PenTool, Book, MoreVertical, ArrowRight } from "lucide-react";
 import { Module } from "@/lib/schemas";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -15,145 +15,171 @@ export function LessonAudio({ module, onNext }: LessonAudioProps) {
     const { theme } = useCourseStore();
     const [isPlaying, setIsPlaying] = useState(false);
     const [audioProgress, setAudioProgress] = useState(0);
-    const [persona, setPersona] = useState<VoicePersona>('mentor');
+    const [duration, setDuration] = useState(0);
+    const [currentTime, setCurrentTime] = useState(0);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    // TTS Fallback State
+    const [isTTS, setIsTTS] = useState(false);
+
+    useEffect(() => {
+        // Reset when module changes
+        setIsPlaying(false);
+        setAudioProgress(0);
+        setCurrentTime(0);
+
+        if (module.audioUrl) {
+            setIsTTS(false);
+            if (audioRef.current) {
+                audioRef.current.src = module.audioUrl;
+                audioRef.current.load();
+            }
+        } else {
+            setIsTTS(true);
+        }
+
+        return () => {
+            if (isTTS) audioService.stop();
+        };
+    }, [module, isTTS]);
 
     const handleTogglePlay = () => {
-        if (isPlaying) {
-            audioService.stop();
-            setIsPlaying(false);
-            setAudioProgress(0);
+        if (isTTS) {
+            // ... existing TTS logic ...
+            if (isPlaying) {
+                audioService.stop();
+                setIsPlaying(false);
+            } else {
+                setIsPlaying(true);
+                audioService.speak(
+                    module.content.full_lesson_content,
+                    'mentor',
+                    (index) => {
+                        // Estimate progress
+                        const progress = (index / module.content.full_lesson_content.length) * 100;
+                        setAudioProgress(progress);
+                        setCurrentTime((progress / 100) * 225); // Fake duration
+                    },
+                    () => setIsPlaying(false)
+                );
+            }
         } else {
-            setIsPlaying(true);
-            audioService.speak(
-                module.content.full_lesson_content,
-                persona,
-                (index) => {
-                    const progress = (index / module.content.full_lesson_content.length) * 100;
-                    setAudioProgress(progress);
-                },
-                () => {
-                    setIsPlaying(false);
-                    setAudioProgress(100);
-                }
-            );
+            // MP3 Logic
+            if (!audioRef.current) return;
+
+            if (isPlaying) {
+                audioRef.current.pause();
+                setIsPlaying(false);
+            } else {
+                audioRef.current.play();
+                setIsPlaying(true);
+            }
         }
     };
 
-    useEffect(() => {
-        return () => audioService.stop();
-    }, []);
-
-    const formatTime = (percent: number) => {
-        const totalSeconds = 225; // 3:45 (Simulated duration)
-        const currentSeconds = Math.floor((percent / 100) * totalSeconds);
-        const minutes = Math.floor(currentSeconds / 60);
-        const seconds = currentSeconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    const handleTimeUpdate = () => {
+        if (audioRef.current) {
+            const current = audioRef.current.currentTime;
+            const dur = audioRef.current.duration;
+            setCurrentTime(current);
+            setDuration(dur);
+            setAudioProgress((current / dur) * 100);
+        }
     };
 
-    const headingColor = theme === 'paper' ? 'text-slate-900' : 'text-slate-100';
-    const subColor = theme === 'paper' ? 'text-slate-500' : 'text-slate-400';
+    const handleAudioEnded = () => {
+        setIsPlaying(false);
+        setAudioProgress(100);
+    };
+
+    const formatTime = (time: number) => {
+        if (!time || isNaN(time)) return "0:00";
+        const minutes = Math.floor(time / 60);
+        const seconds = Math.floor(time % 60);
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
 
     return (
         <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 10 }}
-            transition={{ duration: 0.2 }}
-            className="flex flex-col items-center justify-center py-12 bg-slate-800/30 rounded-2xl border border-slate-800"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-2xl mx-auto"
         >
-            <div className={`w-36 h-36 rounded-full flex items-center justify-center mb-8 shadow-2xl ring-1 ring-slate-700 transition-all duration-700 relative overflow-hidden ${isPlaying ? "bg-amber-900/40 scale-105 ring-amber-500/30" : "bg-slate-900 scale-100"}`}>
-                {/* Visualizer Bars */}
-                {isPlaying && (
-                    <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-50">
-                        {[...Array(8)].map((_, i) => (
-                            <motion.div
-                                key={i}
-                                animate={{
-                                    height: [20, 60, 30, 80, 40],
-                                    opacity: [0.5, 1, 0.5]
-                                }}
-                                transition={{
-                                    repeat: Infinity,
-                                    duration: 0.8,
-                                    ease: "easeInOut",
-                                    delay: i * 0.1,
-                                    repeatType: "mirror"
-                                }}
-                                className="w-2 bg-amber-500 rounded-full"
-                            />
-                        ))}
+            {/* Audio Element (Hidden) */}
+            <audio
+                ref={audioRef}
+                onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={handleTimeUpdate}
+                onEnded={handleAudioEnded}
+                preload="metadata"
+            />
+
+            {/* Card Container */}
+            <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-2xl relative overflow-hidden">
+
+                {/* Header Content */}
+                <div className="flex items-start gap-4 mb-8 relative z-10">
+                    <div className="w-12 h-12 rounded-xl bg-amber-900/30 flex items-center justify-center border border-amber-500/20 text-amber-500">
+                        <Book className="w-6 h-6" />
                     </div>
-                )}
-
-                <Headphones className={`w-12 h-12 text-amber-500 relative z-10 transition-all duration-500 ${isPlaying ? "scale-110 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]" : "opacity-80"}`} />
-            </div>
-            <h3 className={cn("text-xl font-bold mb-2 transition-colors", headingColor)}>{module.title} (Audio)</h3>
-            <p className={cn("text-sm mb-6 transition-colors", subColor)}>Listen to the daily lesson on the go.</p>
-
-            {/* Persona Selector */}
-            <div className="flex gap-2 mb-8">
-                {(['mentor', 'philosopher', 'warrior'] as VoicePersona[]).map((p) => (
-                    <button
-                        key={p}
-                        onClick={() => setPersona(p)}
-                        disabled={isPlaying}
-                        className={cn(
-                            "px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all border",
-                            persona === p
-                                ? "bg-amber-500 border-amber-500 text-slate-900"
-                                : "bg-slate-900/50 border-slate-700 text-slate-400 hover:border-slate-500 disabled:opacity-50"
-                        )}
-                    >
-                        {p}
-                    </button>
-                ))}
-            </div>
-
-            {module.spotifyId ? (
-                <div className="w-full max-w-sm">
-                    <iframe
-                        style={{ borderRadius: "12px" }}
-                        src={`https://open.spotify.com/embed/track/${module.spotifyId}?utm_source=generator&theme=0`}
-                        width="100%"
-                        height="152"
-                        frameBorder="0"
-                        allowFullScreen
-                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                        loading="lazy"
-                    ></iframe>
+                    <div>
+                        <h3 className="text-xl font-bold text-white leading-tight mb-1">{module.title}</h3>
+                        <p className="text-sm text-slate-400">{module.summary}</p>
+                    </div>
                 </div>
-            ) : (
-                <div className="w-full max-w-sm bg-slate-700/50 rounded-full h-16 flex items-center px-4 relative overflow-hidden group cursor-pointer hover:bg-slate-700 transition-colors" onClick={handleTogglePlay}>
-                    <button
-                        aria-label={isPlaying ? "Pause Audio" : "Play Audio"}
-                        className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center text-slate-900 hover:scale-105 transition-transform z-10 shadow-lg shadow-amber-500/20"
-                    >
-                        {isPlaying ? (
-                            <div className="flex space-x-1">
-                                <div className="w-1 h-3 bg-slate-900 rounded-full" />
-                                <div className="w-1 h-3 bg-slate-900 rounded-full" />
+
+                {/* Player UI */}
+                <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50 relative z-10">
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                        <span className="text-[10px] font-bold tracking-widest text-amber-500 uppercase">Audio Guide</span>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        {/* Play Button */}
+                        <button
+                            onClick={handleTogglePlay}
+                            className="w-10 h-10 rounded-full bg-amber-500 hover:bg-amber-400 flex items-center justify-center text-slate-900 transition-all hover:scale-105 shadow-lg shadow-amber-500/20 flex-shrink-0"
+                        >
+                            {isPlaying ? (
+                                <div className="flex gap-1 h-3">
+                                    <div className="w-1 bg-slate-900 rounded-full animate-[music-bar_0.5s_ease-in-out_infinite]" />
+                                    <div className="w-1 bg-slate-900 rounded-full animate-[music-bar_0.5s_ease-in-out_infinite_0.1s]" />
+                                    <div className="w-1 bg-slate-900 rounded-full animate-[music-bar_0.5s_ease-in-out_infinite_0.2s]" />
+                                </div>
+                            ) : (
+                                <Play className="w-4 h-4 ml-0.5 fill-current" />
+                            )}
+                        </button>
+
+                        {/* Progress Bar */}
+                        <div className="flex-1 flex items-center gap-3">
+                            <span className="text-xs text-slate-400 font-mono w-8 text-right">{formatTime(currentTime)}</span>
+                            <div className="flex-1 h-1.5 bg-slate-700 rounded-full relative overflow-hidden">
+                                <div
+                                    className="absolute inset-y-0 left-0 bg-white rounded-full transition-all duration-100"
+                                    style={{ width: `${audioProgress}%` }}
+                                />
                             </div>
-                        ) : (
-                            <Play className="w-5 h-5 ml-1" />
-                        )}
-                    </button>
-                    <div className="flex-1 mx-4 h-1 bg-slate-600 rounded-full overflow-hidden">
-                        <div
-                            className="h-full bg-amber-500 rounded-full transition-all duration-100 ease-linear"
-                            style={{ width: `${audioProgress}%` }}
-                        />
-                    </div>
-                    <span className="text-xs text-slate-400 font-mono w-10 text-right">{formatTime(audioProgress)}</span>
-                </div>
-            )}
+                            <span className="text-xs text-slate-400 font-mono w-8 text-left">{formatTime(isTTS ? 225 : duration)}</span>
+                        </div>
 
-            <div className="mt-12 flex justify-center">
+                        {/* Volume/Options */}
+                        <button className="text-slate-400 hover:text-white transition-colors">
+                            <MoreVertical className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div className="mt-8 flex justify-center">
                 <button
                     onClick={onNext}
-                    className="text-amber-500 hover:text-amber-400 font-medium flex items-center transition-colors"
+                    className="group flex items-center gap-2 px-6 py-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 rounded-full text-amber-500 text-sm font-medium transition-all"
                 >
-                    Next: Reflect <PenTool className="w-4 h-4 ml-2" />
+                    Continue to Reflection
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </button>
             </div>
         </motion.div>
