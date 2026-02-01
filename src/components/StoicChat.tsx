@@ -5,6 +5,7 @@ import { MessageCircle, X, Send, Sparkles, User, Bot, Volume2 } from "lucide-rea
 import { motion, AnimatePresence } from "framer-motion";
 import { model } from "@/lib/gemini";
 import { cn } from "@/lib/utils";
+import { voiceService } from "@/lib/voice";
 
 interface ChatMessage {
     role: "user" | "model";
@@ -97,9 +98,6 @@ export function StoicChat() {
                                     )}>
                                         {msg.role === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4 text-amber-500" />}
                                     </div>
-                                    import {voiceService} from "@/lib/voice";
-
-                                    // ... inside StoicChat ...
                                     <div className={cn(
                                         "p-3 rounded-2xl text-sm leading-relaxed relative group",
                                         msg.role === "user"
@@ -113,7 +111,7 @@ export function StoicChat() {
                                                 className="absolute -bottom-6 left-0 opacity-0 group-hover:opacity-100 transition-opacity text-amber-500/50 hover:text-amber-500 p-1"
                                                 title="Listen to Marcus"
                                             >
-                                                <Icons.Volume2 className="w-4 h-4" />
+                                                <Volume2 className="w-4 h-4" />
                                             </button>
                                         )}
                                     </div>
