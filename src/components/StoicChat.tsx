@@ -77,6 +77,7 @@ export function StoicChat() {
                             <button
                                 onClick={() => setIsOpen(false)}
                                 className="text-slate-400 hover:text-white transition-colors"
+                                aria-label="Close Chat"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -149,6 +150,7 @@ export function StoicChat() {
                                     type="submit"
                                     disabled={!input.trim() || isLoading}
                                     className="absolute right-2 p-2 bg-amber-500 rounded-full text-slate-900 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    aria-label="Send Message"
                                 >
                                     <Send className="w-4 h-4" />
                                 </button>
@@ -167,6 +169,7 @@ export function StoicChat() {
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setIsOpen(true)}
                     className="fixed bottom-24 right-6 z-50 w-14 h-14 bg-amber-500 rounded-full shadow-lg shadow-amber-500/20 flex items-center justify-center text-slate-900 hover:text-white transition-colors border-2 border-white/10"
+                    aria-label="Open AI Mentor"
                 >
                     <MessageCircle className="w-7 h-7" />
                 </motion.button>

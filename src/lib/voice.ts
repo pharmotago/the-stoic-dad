@@ -75,7 +75,7 @@ class VoiceService {
         const voice = options.voice || this.getMarcusVoice();
 
         if (voice) {
-            console.log(`[VoiceService] Marcus speaking with: ${voice.name} (${voice.lang})`);
+            // console.log(`[VoiceService] Marcus speaking with: ${voice.name} (${voice.lang})`);
             utterance.voice = voice;
         }
 

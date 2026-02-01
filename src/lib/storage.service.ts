@@ -97,7 +97,7 @@ export class StorageService {
             // Remove oldest journal entry
             journalKeys.sort();
             localStorage.removeItem(journalKeys[0]);
-            console.log(`Removed old journal entry: ${journalKeys[0]}`);
+            // console.log(`Removed old journal entry: ${journalKeys[0]}`);
         }
     }
 

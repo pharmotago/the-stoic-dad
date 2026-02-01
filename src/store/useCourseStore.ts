@@ -70,8 +70,9 @@ export const useCourseStore = create<CourseState>()(
             setPanicMode: (active: boolean) => set({ isPanicMode: active }),
 
             saveJournalEntry: (moduleId, content, mood = 'neutral') => set((state) => {
+                const sanitizedContent = content.replace(/<[^>]*>?/gm, '');
                 const entry: JournalEntry = {
-                    content,
+                    content: sanitizedContent,
                     mood,
                     timestamp: new Date().toISOString(),
                     wordCount: content.split(/\s+/).filter(Boolean).length

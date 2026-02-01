@@ -9,8 +9,12 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
 
     return (
         <ToastProvider>
+            <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] px-4 py-2 bg-amber-500 text-slate-900 font-bold rounded-lg shadow-xl">
+                Skip to Content
+            </a>
             <AnimatePresence mode="wait">
                 <motion.div
+                    id="main-content"
                     key={pathname}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
