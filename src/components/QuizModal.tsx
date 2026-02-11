@@ -33,6 +33,26 @@ export function QuizModal({ module, isOpen, onClose, onSuccess }: QuizModalProps
         } as any];
     }
 
+    // FALLBACK: Use Audit questions if no multiple choice exists
+    if (questions.length === 0 && module.content.audit?.length) {
+        questions = module.content.audit.map(q => ({
+            question: q,
+            options: ["I have meditated on this", "I will apply this tonight", "I need more practice"],
+            correctAnswer: -1,
+            explanation: "Insight is the fruit of honest reflection. Keep building your Inner Citadel."
+        }));
+    }
+
+    // FINAL FALLBACK: General Knowledge Check
+    if (questions.length === 0) {
+        questions = [{
+            question: "Have you fully internalized today's core principle and the Dichotomy of Control?",
+            options: ["Yes, I am focused on my internals", "I am still practicing", "I will re-read the lesson"],
+            correctAnswer: -1,
+            explanation: "Progress, not perfection, is the goal of the Stoic Dad."
+        }];
+    }
+
     const currentQuestion = questions[currentQuestionIndex];
     const isLastQuestion = currentQuestionIndex === questions.length - 1;
 
@@ -40,7 +60,7 @@ export function QuizModal({ module, isOpen, onClose, onSuccess }: QuizModalProps
         if (selectedOption === null) return;
 
         setHasSubmitted(true);
-        const correct = selectedOption === currentQuestion.correctAnswer;
+        const correct = currentQuestion.correctAnswer === -1 ? true : selectedOption === currentQuestion.correctAnswer;
         setIsCorrect(correct);
 
         if (correct) {

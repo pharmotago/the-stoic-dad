@@ -70,6 +70,30 @@ This week, when any "Expectation Violation" occurs:
         audit: [
             "What is one parenting situation where you consistently try to control the 'External' rather than your 'Internal' reaction? 🎮",
             "Can you identify the physical sensation (heat, tightness, pulse) that signals your Amygdala is taking over? 🚨"
+        ],
+        questions: [
+            {
+                question: "According to the 'Dichotomy of Control', which of these is 100% within your power?",
+                options: [
+                    "Your child's immediate obedience",
+                    "The outcome of a stressful meeting",
+                    "Your own thoughts and voluntary actions",
+                    "The mood of your partner"
+                ],
+                correctAnswer: 2,
+                explanation: "Stoicism teaches that only our own thoughts, intentions, and voluntary actions are truly within our control."
+            },
+            {
+                question: "What is the 'Red Mist' a biological symptom of?",
+                options: [
+                    "The Amygdala hijacking the Prefrontal Cortex",
+                    "A display of strong paternal authority",
+                    "A lack of discipline from the children",
+                    "The body preparing for a productive leadership moment"
+                ],
+                correctAnswer: 0,
+                explanation: "The 'Red Mist' occurs when the Amygdala perceives a threat and redirects blood flow away from the logical Prefrontal Cortex."
+            }
         ]
     }
 };
