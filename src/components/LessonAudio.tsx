@@ -23,10 +23,11 @@ export function LessonAudio({ module, onNext }: LessonAudioProps) {
     const [isTTS, setIsTTS] = useState(false);
 
     useEffect(() => {
-        // Reset when module changes
+        // Reset state only when the ACTUAL module changes (by ID)
         setIsPlaying(false);
         setAudioProgress(0);
         setCurrentTime(0);
+        audioService.stop();
 
         if (module.audioUrl) {
             setIsTTS(false);
@@ -37,11 +38,7 @@ export function LessonAudio({ module, onNext }: LessonAudioProps) {
         } else {
             setIsTTS(true);
         }
-
-        return () => {
-            if (isTTS) audioService.stop();
-        };
-    }, [module, isTTS]);
+    }, [module.id]); // ONLY depend on the module ID for resets
 
     const handleTogglePlay = () => {
         if (isTTS) {
@@ -111,6 +108,10 @@ export function LessonAudio({ module, onNext }: LessonAudioProps) {
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleTimeUpdate}
                 onEnded={handleAudioEnded}
+                onError={() => {
+                    console.log("Audio URL failed, falling back to TTS");
+                    setIsTTS(true);
+                }}
                 preload="metadata"
             />
 
@@ -137,20 +138,30 @@ export function LessonAudio({ module, onNext }: LessonAudioProps) {
 
                     <div className="flex items-center gap-4">
                         {/* Play Button */}
-                        <button
-                            onClick={handleTogglePlay}
-                            className="w-10 h-10 rounded-full bg-amber-500 hover:bg-amber-400 flex items-center justify-center text-slate-900 transition-all hover:scale-105 shadow-lg shadow-amber-500/20 flex-shrink-0"
-                        >
-                            {isPlaying ? (
-                                <div className="flex gap-1 h-3">
-                                    <div className="w-1 bg-slate-900 rounded-full animate-[music-bar_0.5s_ease-in-out_infinite]" />
-                                    <div className="w-1 bg-slate-900 rounded-full animate-[music-bar_0.5s_ease-in-out_infinite_0.1s]" />
-                                    <div className="w-1 bg-slate-900 rounded-full animate-[music-bar_0.5s_ease-in-out_infinite_0.2s]" />
-                                </div>
-                            ) : (
-                                <Play className="w-4 h-4 ml-0.5 fill-current" />
+                        <div className="flex flex-col gap-2">
+                            <button
+                                onClick={handleTogglePlay}
+                                className="w-10 h-10 rounded-full bg-amber-500 hover:bg-amber-400 flex items-center justify-center text-slate-900 transition-all hover:scale-105 shadow-lg shadow-amber-500/20 flex-shrink-0"
+                            >
+                                {isPlaying ? (
+                                    <div className="flex gap-1 h-3">
+                                        <div className="w-1 bg-slate-900 rounded-full animate-[music-bar_0.5s_ease-in-out_infinite]" />
+                                        <div className="w-1 bg-slate-900 rounded-full animate-[music-bar_0.5s_ease-in-out_infinite_0.1s]" />
+                                        <div className="w-1 bg-slate-900 rounded-full animate-[music-bar_0.5s_ease-in-out_infinite_0.2s]" />
+                                    </div>
+                                ) : (
+                                    <Play className="w-4 h-4 ml-0.5 fill-current" />
+                                )}
+                            </button>
+                            {!isTTS && module.audioUrl && (
+                                <button
+                                    onClick={() => setIsTTS(true)}
+                                    className="text-[9px] text-slate-500 hover:text-amber-500 uppercase font-black tracking-tighter"
+                                >
+                                    Switch to AI
+                                </button>
                             )}
-                        </button>
+                        </div>
 
                         {/* Progress Bar */}
                         <div className="flex-1 flex items-center gap-3">
