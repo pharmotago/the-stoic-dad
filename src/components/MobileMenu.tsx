@@ -1,6 +1,4 @@
-import React from 'react';
-import { Menu, X, Home, BarChart3, Shield, Settings as SettingsIcon, Users } from 'lucide-react';
-import { UserProfile } from '@/components/UserProfile';
+import { Menu, X, Home, BarChart3, Shield, Settings as SettingsIcon, Users, Trophy } from 'lucide-react';
 
 interface MobileMenuProps {
     isOpen: boolean;
@@ -44,8 +42,16 @@ export function MobileMenu({ isOpen, onToggle, onNavigate, currentPage, totalXp 
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
                 <div className="p-6 h-full flex flex-col">
-                    <div className="mb-8">
-                        <UserProfile totalXp={totalXp} className="w-full bg-slate-900/50" />
+                    <div className="mb-8 p-6 bg-slate-900/50 border border-white/5 rounded-2xl">
+                        <div className="flex items-center gap-4 mb-2">
+                            <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/30">
+                                <Trophy className="w-6 h-6 text-amber-500" />
+                            </div>
+                            <div>
+                                <div className="text-slate-100 font-bold">Stoic Dad</div>
+                                <div className="text-amber-500 text-xs font-mono">{totalXp} XP</div>
+                            </div>
+                        </div>
                     </div>
 
                     <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 px-2">Navigation</h2>

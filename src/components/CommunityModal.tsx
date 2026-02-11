@@ -1,8 +1,7 @@
 "use client";
 
 import React from 'react';
-import { X } from 'lucide-react';
-import { Leaderboard } from './Leaderboard';
+import { X, Users } from 'lucide-react';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface CommunityModalProps {
@@ -37,8 +36,13 @@ export function CommunityModal({ isOpen, onClose, currentXp, currentStreak }: Co
                     <X className="w-8 h-8" />
                 </button>
 
-                <div className="p-1">
-                    <Leaderboard currentUserXp={currentXp} currentUserStreak={currentStreak} />
+                <div className="p-12 text-center">
+                    <Users className="w-16 h-16 mx-auto text-slate-700 mb-4" />
+                    <h3 className="text-xl font-bold text-white mb-2">Community Coming Soon</h3>
+                    <p className="text-slate-400 max-w-sm mx-auto">
+                        We're building a space for Stoic dads to connect and share wisdom.
+                        Your current progress of <strong>{currentXp} XP</strong> and <strong>{currentStreak} day streak</strong> puts you in a great position!
+                    </p>
                 </div>
             </div>
         </div>

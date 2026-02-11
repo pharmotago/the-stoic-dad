@@ -1,8 +1,7 @@
 "use client";
 
 import React from 'react';
-import { X, Download, Share2 } from 'lucide-react';
-import { ShareCard } from './ShareCard';
+import { X, Download, Share2, Trophy, Flame, BookOpen } from 'lucide-react';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { calculateLevel } from '@/lib/gamification';
 
@@ -47,12 +46,42 @@ export function ShareModal({ isOpen, onClose, totalXp, streak, completedModules 
                     </h2>
 
                     <div className="mb-8 w-full transform hover:scale-[1.02] transition-transform duration-300">
-                        <ShareCard
-                            totalXp={totalXp}
-                            streak={streak}
-                            level={title}
-                            completedModules={completedModules}
-                        />
+                        <div className="bg-slate-950 p-6 rounded-2xl border border-white/10 shadow-inner relative overflow-hidden group">
+                            {/* Decorative gradients */}
+                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 blur-3xl rounded-full" />
+                            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full" />
+
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="p-2 bg-amber-500 rounded-lg">
+                                        <Trophy className="w-5 h-5 text-slate-950" />
+                                    </div>
+                                    <div>
+                                        <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Stoic Status</div>
+                                        <div className="text-white font-bold">{title}</div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="text-center">
+                                        <div className="text-amber-500 font-mono text-lg font-bold">{totalXp}</div>
+                                        <div className="text-slate-500 text-[9px] uppercase tracking-tighter">Total XP</div>
+                                    </div>
+                                    <div className="text-center border-x border-white/5">
+                                        <div className="text-orange-500 font-mono text-lg font-bold flex items-center justify-center gap-1">
+                                            <Flame className="w-4 h-4" /> {streak}
+                                        </div>
+                                        <div className="text-slate-500 text-[9px] uppercase tracking-tighter">Streak</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-blue-400 font-mono text-lg font-bold flex items-center justify-center gap-1">
+                                            <BookOpen className="w-4 h-4" /> {completedModules}
+                                        </div>
+                                        <div className="text-slate-500 text-[9px] uppercase tracking-tighter">Day</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="flex gap-3 w-full">

@@ -6,7 +6,6 @@ import { Footer } from "@/components/Footer";
 import { ArrowLeft, PenTool, Search, Calendar, Hash, Smile, Meh, Frown, Download, Printer, FileDown, BookOpen, BrainCircuit, X, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { triggerHaptic, HapticPatterns } from "@/lib/haptics";
-import { EmptyState } from "@/components/ui/EmptyState";
 import { useRouter } from "next/navigation";
 import { journalModel } from "@/lib/gemini";
 
@@ -239,12 +238,17 @@ export default function JournalPage() {
                             <button onClick={() => setSearchQuery("")} className="text-amber-500 underline text-sm">Clear search</button>
                         </div>
                     ) : (
-                        <EmptyState
-                            title="No entries yet"
-                            description="Your reflections are the anchor of your practice. Complete a lesson to record your first entry."
-                            actionLabel="Start Training"
-                            onAction={() => { triggerHaptic(HapticPatterns.medium); router.push("/"); }}
-                        />
+                        <div className="text-center py-20 bg-slate-800/20 rounded-2xl border border-dashed border-slate-800">
+                            <PenTool className="w-12 h-12 mx-auto text-slate-600 mb-4" />
+                            <h3 className="text-xl font-medium mb-2 text-slate-500">No entries yet</h3>
+                            <p className="text-slate-400 text-sm mb-6 max-w-xs mx-auto">Your reflections are the anchor of your practice. Complete a lesson to record your first entry.</p>
+                            <button
+                                onClick={() => { triggerHaptic(HapticPatterns.medium); router.push("/"); }}
+                                className="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg transition-colors"
+                            >
+                                Start Training
+                            </button>
+                        </div>
                     )
                 ) : (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

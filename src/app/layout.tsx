@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { ClientLayout } from "@/components/ClientLayout";
 import { StoicChat } from "@/components/StoicChat";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -59,14 +57,10 @@ export default function RootLayout({
     return (
         <html lang="en" className="scroll-smooth">
             <body className={cn(inter.className, "antialiased font-sans")}>
-                <ErrorBoundary>
-                    <SoundProvider>
-                        <ClientLayout>
-                            {children}
-                        </ClientLayout>
-                        <StoicChat />
-                    </SoundProvider>
-                </ErrorBoundary>
+                <SoundProvider>
+                    {children}
+                    <StoicChat />
+                </SoundProvider>
             </body>
         </html>
     );
