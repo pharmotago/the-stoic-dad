@@ -34,6 +34,7 @@ const DailyQuote = dynamic(() => import('@/components/DailyQuote').then(mod => m
 const QuickActions = dynamic(() => import('@/components/QuickActions').then(mod => mod.QuickActions));
 const LoadingSkeleton = dynamic(() => import('@/components/LoadingSkeleton').then(mod => mod.LoadingSkeleton));
 const MobileMenu = dynamic(() => import('@/components/MobileMenu').then(mod => mod.MobileMenu), { ssr: false });
+import { SynthesisOverlay } from '@/components/SynthesisOverlay';
 
 // Code Splitting for heavy modals
 const QuizModal = dynamic(() => import('@/components/QuizModal').then(mod => mod.QuizModal), {
@@ -50,24 +51,29 @@ import { exportJournalData, resetAllProgress } from '@/lib/export';
 
 import { useHistory } from '@/hooks/useHistory';
 
+import { useCourseStore } from '@/store/useCourseStore';
+
 export default function Home() {
-    const [activeModule, setActiveModule] = useState<Module | null>(null);
-    const [highestUnlockedId, setHighestUnlockedId] = useState(1);
+    const {
+        activeModule,
+        setActiveModule,
+        unlockedIndex,
+        completedModules,
+        currentStreak,
+        longestStreak,
+        lastCheckIn,
+        totalXp,
+        completeModule,
+        addXp,
+        resetProgress,
+        isLoaded
+    } = useCourseStore();
 
     // Premium Logic
     const [isPremium, setIsPremium] = useState(false);
     const [showPremiumModal, setShowPremiumModal] = useState(false);
 
-    // History management for progress
-    const {
-        state: completedModules,
-        set: setCompletedModules,
-        undo: undoProgress,
-        redo: redoProgress,
-        canUndo,
-        canRedo
-    } = useHistory<number[]>([]);
-
+    // Modals & UI State
     const [showQuiz, setShowQuiz] = useState(false);
     const [showEmergency, setShowEmergency] = useState(false);
     const [showJournal, setShowJournal] = useState(false);
@@ -79,80 +85,38 @@ export default function Home() {
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [showCommunity, setShowCommunity] = useState(false);
     const [showShare, setShowShare] = useState(false);
-    const [isLoaded, setIsLoaded] = useState(false);
-
-    // Streak tracking
-    const [currentStreak, setCurrentStreak] = useState(0);
-    const [longestStreak, setLongestStreak] = useState(0);
-    const [lastCheckIn, setLastCheckIn] = useState<string | null>(null);
-
-    // Gamification State
-    const [totalXp, setTotalXp] = useState(0);
 
     // Toast notifications
     const { showToast, ToastComponent } = useToast();
 
-    // Load progress from LocalStorage
+    // Load Welcome/Tutorial logic from LocalStorage (UI only)
     useEffect(() => {
-        const savedProgress = localStorage.getItem('stoic-dad-progress');
-        const savedCompleted = localStorage.getItem('stoic-dad-completed');
-        const savedStreak = localStorage.getItem('stoic-dad-streak');
-        const savedLongest = localStorage.getItem('stoic-dad-longest-streak');
-        const savedLastCheckIn = localStorage.getItem('stoic-dad-last-checkin');
+        if (!isLoaded) return;
+
         const hasSeenWelcome = localStorage.getItem('stoic-dad-welcomed');
         const hasSeenTutorial = localStorage.getItem('stoic-dad-tutorial');
-        const savedXp = localStorage.getItem('stoic-dad-xp');
         const savedPremium = localStorage.getItem('stoic-dad-premium');
 
-        if (savedProgress) setHighestUnlockedId(parseInt(savedProgress));
-        if (savedCompleted) setCompletedModules(JSON.parse(savedCompleted));
-        if (savedStreak) setCurrentStreak(parseInt(savedStreak));
-        if (savedLongest) setLongestStreak(parseInt(savedLongest));
-        if (savedLastCheckIn) setLastCheckIn(savedLastCheckIn);
-        if (savedXp) setTotalXp(parseInt(savedXp));
         if (savedPremium === 'true') setIsPremium(true);
 
-        // Show welcome modal for first-time users
         if (!hasSeenWelcome) {
             setShowWelcome(true);
         } else if (!hasSeenTutorial) {
             setShowTutorial(true);
         }
-
-        setIsLoaded(true);
-    }, []);
+    }, [isLoaded]);
 
     const handleWelcomeClose = () => {
         setShowWelcome(false);
         localStorage.setItem('stoic-dad-welcomed', 'true');
-        // Show tutorial after welcome
         setTimeout(() => setShowTutorial(true), 500);
     };
 
     const handleUnlockPremium = () => {
         setIsPremium(true);
         localStorage.setItem('stoic-dad-premium', 'true');
-        // Unlock all modules essentially by removing the lock check visual
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
-
-    // Check streak on mount
-    useEffect(() => {
-        if (!isLoaded) return;
-
-        const today = new Date().toDateString();
-        const yesterday = new Date(Date.now() - 86400000).toDateString();
-
-        if (lastCheckIn !== today) {
-            if (lastCheckIn === yesterday) {
-                // Maintain streak
-            } else if (lastCheckIn) {
-                // Streak broken
-                setCurrentStreak(0);
-                localStorage.setItem('stoic-dad-streak', '0');
-            }
-        }
-    }, [isLoaded, lastCheckIn]);
 
     const handleModuleClick = (module: Module) => {
         // Premium Lock Visual
@@ -161,8 +125,8 @@ export default function Home() {
             return;
         }
 
-        // Standard Progression Lock
-        if (module.id <= highestUnlockedId) {
+        // Standard Progression Lock (index-based)
+        if (module.id - 1 <= unlockedIndex) {
             setActiveModule(module);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -172,48 +136,20 @@ export default function Home() {
         setShowQuiz(false);
 
         if (activeModule) {
-            // Mark current as completed
-            if (!completedModules.includes(activeModule.id)) {
-                const newCompleted = [...completedModules, activeModule.id];
-                setCompletedModules(newCompleted);
-                localStorage.setItem('stoic-dad-completed', JSON.stringify(newCompleted));
-
-                // Update streak
-                const today = new Date().toDateString();
-                if (lastCheckIn !== today) {
-                    const newStreak = currentStreak + 1;
-                    setCurrentStreak(newStreak);
-                    setLastCheckIn(today);
-                    localStorage.setItem('stoic-dad-streak', newStreak.toString());
-                    localStorage.setItem('stoic-dad-last-checkin', today);
-
-                    if (newStreak > longestStreak) {
-                        setLongestStreak(newStreak);
-                        localStorage.setItem('stoic-dad-longest-streak', newStreak.toString());
-                    }
-                }
-            }
-
-            // Unlock next
-            const nextId = activeModule.id + 1;
-            if (nextId > highestUnlockedId) {
-                setHighestUnlockedId(nextId);
-                localStorage.setItem('stoic-dad-progress', nextId.toString());
-            }
-
-            // Award XP
             const oldLevel = calculateLevel(totalXp).level;
-            const xpGained = XP_CONSTANTS.COMPLETE_QUIZ; // + Bonus potential
-            const newXp = totalXp + xpGained;
-            setTotalXp(newXp);
-            localStorage.setItem('stoic-dad-xp', newXp.toString());
+
+            // Centralized Store Logic
+            completeModule(activeModule.id);
+
+            const xpGained = XP_CONSTANTS.COMPLETE_QUIZ;
+            addXp(xpGained);
 
             showToast(`+${xpGained} XP! Knowledge grows.`, 'success');
 
             // Check Level Up
-            const newLevel = calculateLevel(newXp).level;
+            const newLevel = calculateLevel(totalXp + xpGained).level;
             if (newLevel > oldLevel) {
-                setTimeout(() => showToast(`Level Up! You are now a ${calculateLevel(newXp).title}`, 'success'), 1000);
+                setTimeout(() => showToast(`Level Up! You are now a ${calculateLevel(totalXp + xpGained).title}`, 'success'), 1000);
             }
 
             setActiveModule(null);
@@ -227,18 +163,6 @@ export default function Home() {
         's': () => setShowStats(!showStats),
         'k': () => setShowSearch(true),
         '/': () => setShowSearch(true),
-        'z': () => {
-            if (canUndo) {
-                undoProgress();
-                showToast('Progress undone', 'info');
-            }
-        },
-        'y': () => {
-            if (canRedo) {
-                redoProgress();
-                showToast('Progress restored', 'success');
-            }
-        },
         'escape': () => {
             setShowEmergency(false);
             setShowJournal(false);
@@ -250,14 +174,19 @@ export default function Home() {
     }, !activeModule || !showQuiz);
 
     const handleExportJournal = () => { exportJournalData(courseData.length); };
-    const handleResetProgress = () => { resetAllProgress(); };
+    const handleResetProgress = () => {
+        resetProgress();
+        showToast('All progress reset', 'info');
+    };
 
     if (!isLoaded) return <LoadingSkeleton />;
 
     const progress = (completedModules.length / courseData.length) * 100;
 
+
     return (
         <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-amber-500/30">
+            <SynthesisOverlay />
             {ToastComponent}
 
             {/* Dynamic Imperial Header */}
@@ -302,11 +231,11 @@ export default function Home() {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <div className="text-center lg:text-left space-y-8">
                                 <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-[1.1]">
-                                    Unshakable Father. <br />
-                                    <span className="text-cyan-400">Inner Peace.</span>
+                                    The Unshakable <br />
+                                    <span className="text-cyan-400">Patriarch.</span>
                                 </h1>
                                 <p className="text-xl text-slate-400 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                                    Transform your family legacy through the unshakable art of self-mastery and deep emotional discipline.
+                                    Transform your legacy through a neuroscience-backed Stoic protocol. Master the biological override and reclaim your family's peace.
                                 </p>
 
                                 <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
@@ -345,21 +274,21 @@ export default function Home() {
                         {/* Social Proof Strip */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
                             <Testimonial
-                                quote="Saved my relationship with my son. I finally learned how to pause before reacting."
+                                quote="The 'Binary Filter' technique saved my relationship with my son. I finally learned how to kill the Red Mist before it spoke."
                                 author="Mark, Sydney"
                             />
                             <Testimonial
-                                quote="Simple, tactical, and effective. The missing manual for modern fatherhood."
+                                quote="This isn't just theory. It's a tactical manual for modern fathers who refuse to be driven by their impulses."
                                 author="James, London"
                             />
                             <Testimonial
-                                quote="The visualization techniques changed how I handle work stress completely."
+                                quote="The combination of Marcus Aurelius and modern neuroscience is a masterstroke. Absolute game-changer."
                                 author="David, New York"
                             />
                         </div>
 
-                        {/* Pricing Table */}
-                        <PricingTable />
+                        {/* Pricing Table - Hidden for Premium Users */}
+                        {!isPremium && <PricingTable />}
 
                         {/* FAQ */}
                         <FAQSection />
@@ -383,13 +312,13 @@ export default function Home() {
                                         // Currently ModuleCard handles "isLocked". We'll overload it or pass a custom click.
 
                                         const isPremiumLocked = !isPremium && module.id > 1;
-                                        const isProgressionLocked = module.id > highestUnlockedId;
+                                        const isProgressionLocked = module.id - 1 > unlockedIndex;
 
                                         return (
                                             <ModuleCard
                                                 key={module.id}
                                                 module={module}
-                                                isActive={module.id === highestUnlockedId && !completedModules.includes(module.id)}
+                                                isActive={module.id - 1 === unlockedIndex && !completedModules.includes(module.id)}
                                                 isCompleted={completedModules.includes(module.id)}
                                                 isLocked={isPremiumLocked || isProgressionLocked}
                                                 onClick={() => handleModuleClick(module)}
@@ -477,6 +406,17 @@ export default function Home() {
             />
 
             {!isPremium && <StickyPromo />}
+
+            <footer className="mt-20 py-12 border-t border-slate-900/50 container mx-auto px-4 max-w-6xl">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-white/40 text-sm font-black tracking-widest uppercase">
+                    <p>© 2026 MCJP Ecosystem | Precise. Powerful. Productive.</p>
+                    <div className="flex gap-8">
+                        <span className="hover:text-amber-500 cursor-pointer transition-colors">Documentation</span>
+                        <span className="hover:text-amber-500 cursor-pointer transition-colors">Privacy Protocol</span>
+                        <span className="hover:text-amber-500 cursor-pointer transition-colors">System Status</span>
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 }
@@ -485,7 +425,7 @@ function Testimonial({ quote, author }: { quote: string, author: string }) {
     return (
         <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
             <div className="text-amber-500 mb-3">★★★★★</div>
-            <p className="text-slate-300 italic mb-4">"{quote}"</p>
+            <p className="text-white/80 italic mb-4">"{quote}"</p>
             <p className="text-sm font-bold text-white">— {author}</p>
         </div>
     );

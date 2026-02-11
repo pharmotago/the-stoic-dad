@@ -100,11 +100,22 @@ export function DailyQuote() {
                     </p>
                 </blockquote>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-6">
                     <div className="text-sm">
                         <p className="text-amber-400 font-semibold">— {quote.author}</p>
                         <p className="text-slate-500 text-xs italic">{quote.work}</p>
                     </div>
+                </div>
+
+                {/* MCJP Council Insight */}
+                <div className="mt-4 pt-6 border-t border-amber-500/10">
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                        <span className="text-[10px] font-black tracking-[0.2em] text-amber-500/60 uppercase">MCJP Council Insight</span>
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed font-mono italic bg-slate-800/30 p-3 rounded-lg border border-slate-700/50">
+                        "Protocol Zen-6: The Council interprets this as a mandate for cognitive autonomy. By separating internal power from external volatility, the user achieves high-fidelity governance of the self. Recommended Action: Log 10 minutes of journaling on current external pressures."
+                    </p>
                 </div>
             </div>
         </div>

@@ -23,7 +23,7 @@ export function MobileMenu({ isOpen, onToggle, onNavigate, currentPage, totalXp 
             {/* Hamburger button */}
             <button
                 onClick={onToggle}
-                className="lg:hidden fixed bottom-6 left-6 z-50 p-4 bg-slate-800 hover:bg-slate-700 text-white rounded-full shadow-2xl border border-slate-700"
+                className="lg:hidden fixed top-6 right-6 z-50 p-4 bg-slate-900/80 backdrop-blur-md hover:bg-slate-800 text-white rounded-full shadow-2xl border border-white/10"
                 aria-label="Menu"
             >
                 {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

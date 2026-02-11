@@ -1,6 +1,7 @@
 import React from 'react';
 import { Module } from '@/lib/schemas';
 import { ArrowLeft, BookOpen, Brain, Flame } from 'lucide-react';
+import { LessonAudio } from './LessonAudio';
 
 interface LessonViewProps {
     module: Module;
@@ -30,21 +31,12 @@ export function LessonView({ module, onBack, onTakeQuiz }: LessonViewProps) {
                     </div>
                 </div>
 
-                {/* Audio Player */}
-                <div className="mb-8 p-4 bg-slate-900/50 rounded-xl border border-slate-800 flex items-center gap-4">
-                    <div className="p-2 bg-amber-500/10 rounded-full">
-                        <svg className="w-6 h-6 text-amber-500 fill-current" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z" />
-                        </svg>
-                    </div>
-                    <div className="flex-1">
-                        <div className="text-xs font-bold text-amber-500 uppercase tracking-wider mb-1">Audio Guide</div>
-                        <audio
-                            controls
-                            className="w-full h-8"
-                            src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" // Placeholder
-                        />
-                    </div>
+                {/* Advanced Audio Player with TTS Fallback */}
+                <div className="mb-8">
+                    <LessonAudio
+                        module={module}
+                        onNext={onTakeQuiz}
+                    />
                 </div>
 
                 <div className="prose prose-invert prose-lg max-w-none mb-8">

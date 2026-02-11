@@ -23,6 +23,11 @@ interface CourseState {
     isPanicMode: boolean;
     journalEntries: Record<number, JournalEntry>; // Map moduleId -> Entry
     insights: Insight[]; // New: AI Insights
+    completedModules: number[];
+    currentStreak: number;
+    longestStreak: number;
+    lastCheckIn: string | null;
+    totalXp: number;
     completedDates: string[]; // ISO Date strings 'YYYY-MM-DD'
     theme: 'dark' | 'paper';
     focusMode: boolean;
@@ -35,6 +40,8 @@ interface CourseState {
     setPanicMode: (active: boolean) => void;
     saveJournalEntry: (moduleId: number, content: string, mood?: string) => void;
     saveInsight: (content: string) => void; // New Action
+    completeModule: (moduleId: number) => void;
+    addXp: (amount: number) => void;
     markDateComplete: () => void;
     setTheme: (theme: 'dark' | 'paper') => void;
     setFocusMode: (active: boolean) => void;
@@ -44,13 +51,18 @@ interface CourseState {
 
 export const useCourseStore = create<CourseState>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             unlockedIndex: 0,
             activeModule: null,
             isLoaded: false,
             isPanicMode: false,
             journalEntries: {},
             insights: [],
+            completedModules: [],
+            currentStreak: 0,
+            longestStreak: 0,
+            lastCheckIn: null,
+            totalXp: 0,
             completedDates: [],
             theme: 'dark',
             focusMode: false,
@@ -65,7 +77,18 @@ export const useCourseStore = create<CourseState>()(
 
             setActiveModule: (module: Module | null) => set({ activeModule: module }),
 
-            resetProgress: () => set({ unlockedIndex: 0, activeModule: null, journalEntries: {}, insights: [], completedDates: [] }),
+            resetProgress: () => set({
+                unlockedIndex: 0,
+                activeModule: null,
+                journalEntries: {},
+                insights: [],
+                completedModules: [],
+                currentStreak: 0,
+                longestStreak: 0,
+                lastCheckIn: null,
+                totalXp: 0,
+                completedDates: []
+            }),
 
             setPanicMode: (active: boolean) => set({ isPanicMode: active }),
 
@@ -90,6 +113,35 @@ export const useCourseStore = create<CourseState>()(
                 }, ...state.insights]
             })),
 
+            completeModule: (moduleId) => set((state) => {
+                if (state.completedModules.includes(moduleId)) return {};
+
+                const newCompleted = [...state.completedModules, moduleId];
+                const today = new Date().toDateString();
+                const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+                let newStreak = state.currentStreak;
+                if (state.lastCheckIn !== today) {
+                    if (state.lastCheckIn === yesterday || state.lastCheckIn === null) {
+                        newStreak += 1;
+                    } else {
+                        newStreak = 1;
+                    }
+                }
+
+                const newLongest = Math.max(newStreak, state.longestStreak);
+
+                return {
+                    completedModules: newCompleted,
+                    currentStreak: newStreak,
+                    longestStreak: newLongest,
+                    lastCheckIn: today,
+                    unlockedIndex: Math.max(state.unlockedIndex, moduleId) // Unlock next implicitly
+                };
+            }),
+
+            addXp: (amount) => set((state) => ({ totalXp: state.totalXp + amount })),
+
             markDateComplete: () => set((state) => {
                 const today = new Date().toISOString().split('T')[0];
                 if (state.completedDates.includes(today)) return {};
@@ -100,7 +152,16 @@ export const useCourseStore = create<CourseState>()(
 
             setFocusMode: (active) => set({ focusMode: active }),
 
-            initializeStore: () => set({ isLoaded: true }),
+            initializeStore: () => {
+                const today = new Date().toDateString();
+                const yesterday = new Date(Date.now() - 86400000).toDateString();
+                const { lastCheckIn, currentStreak } = get();
+
+                if (lastCheckIn && lastCheckIn !== today && lastCheckIn !== yesterday) {
+                    set({ currentStreak: 0 });
+                }
+                set({ isLoaded: true });
+            },
 
             saveProgress: () => { },
         }),
@@ -110,12 +171,17 @@ export const useCourseStore = create<CourseState>()(
             partialize: (state) => ({
                 unlockedIndex: state.unlockedIndex,
                 journalEntries: state.journalEntries,
-                insights: state.insights, // Persist insights
+                insights: state.insights,
+                completedModules: state.completedModules,
+                currentStreak: state.currentStreak,
+                longestStreak: state.longestStreak,
+                lastCheckIn: state.lastCheckIn,
+                totalXp: state.totalXp,
                 completedDates: state.completedDates,
                 theme: state.theme
             }),
             onRehydrateStorage: () => (state) => {
-                state?.setLoaded();
+                state?.initializeStore();
             }
         }
     )

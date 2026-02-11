@@ -11,6 +11,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
     title: "The Stoic Dad",
     description: "Daily parenting challenges for the modern Stoic.",
+    icons: {
+        icon: '/favicon.png',
+    },
     manifest: "/manifest.json",
     metadataBase: new URL('https://thestoicdad.com'),
     themeColor: [

@@ -44,46 +44,48 @@ export function PricingTable() {
                 </div>
 
                 {/* Pro Tier */}
-                <div className="relative bg-slate-900 rounded-2xl p-8 border border-amber-500/50 shadow-2xl shadow-amber-500/10 transform md:scale-105">
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-amber-500 text-slate-900 text-xs font-bold rounded-full flex items-center gap-1">
-                        <Crown className="w-3 h-3" /> MOST POPULAR
+                <div className="relative bg-slate-900 rounded-2xl p-8 border border-amber-500 shadow-2xl shadow-amber-500/10 transform md:scale-105 border-t-amber-400">
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-900 text-xs font-bold rounded-full flex items-center gap-1 shadow-lg">
+                        <Crown className="w-3 h-3" /> ULTIMATE LEGACY
                     </div>
 
-                    <h3 className="text-xl font-bold text-amber-500 mb-2">The Stoic Patriarch</h3>
+                    <h3 className="text-xl font-bold text-amber-500 mb-2">The Unshakable Patriarch</h3>
                     <div className="flex items-end gap-2 mb-6">
                         <div className="text-4xl font-bold text-white">$29</div>
                         <div className="text-lg text-slate-500 line-through mb-1">$99</div>
+                        <div className="text-xs text-emerald-500 font-bold mb-1 ml-auto animate-pulse">70% OFF TODAY</div>
                     </div>
 
                     <ul className="space-y-4 mb-8">
                         <li className="flex items-center gap-3 text-white">
                             <div className="p-1 bg-emerald-500/20 rounded-full"><Check className="w-4 h-4 text-emerald-500" /></div>
-                            <span>Full Access (Modules 1-10)</span>
+                            <span className="text-sm">Full Access (Modules 1-12)</span>
                         </li>
                         <li className="flex items-center gap-3 text-white">
                             <div className="p-1 bg-emerald-500/20 rounded-full"><Check className="w-4 h-4 text-emerald-500" /></div>
-                            <span>Tactical Audio Guides</span>
+                            <span className="text-sm">Tactical Audio Guides & Scripts</span>
                         </li>
                         <li className="flex items-center gap-3 text-white">
                             <div className="p-1 bg-emerald-500/20 rounded-full"><Check className="w-4 h-4 text-emerald-500" /></div>
-                            <span>"Emergency Toolkit" Lifetime Access</span>
+                            <span className="text-sm">"Emergency Toolkit" Lifetime Access</span>
                         </li>
                         <li className="flex items-center gap-3 text-white">
                             <div className="p-1 bg-emerald-500/20 rounded-full"><Check className="w-4 h-4 text-emerald-500" /></div>
-                            <span>Future Updates Included</span>
+                            <span className="text-sm">MCJP Agent Oversight Support</span>
                         </li>
                     </ul>
 
-                    <a
-                        href="https://mcjp.gumroad.com/l/uobtt"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block w-full py-4 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold rounded-xl text-center transition-colors shadow-lg hover:shadow-xl"
+                    <button
+                        onClick={() => {
+                            // This assumes we pass a prop or use a store to trigger the payment modal
+                            (window as any).dispatchEvent(new CustomEvent('open-premium-modal'));
+                        }}
+                        className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-900 font-black rounded-xl text-center transition-all shadow-lg hover:shadow-amber-500/40 transform hover:-translate-y-1"
                     >
-                        Unlock Full Access
-                    </a>
+                        RECLAIM YOUR PEACE →
+                    </button>
 
-                    <p className="text-xs text-center text-slate-500 mt-4">One-time payment. No subscription.</p>
+                    <p className="text-[10px] text-center text-slate-500 mt-4 uppercase tracking-widest">One-time payment • Secure Stripe Checkout</p>
                 </div>
             </div>
         </div>

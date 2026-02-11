@@ -8,7 +8,7 @@ const protocols = [
         icon: Scale,
         title: 'Dichotomy of Control',
         prompt: 'Is this within my control?',
-        technique: 'Separate what you can control (your response) from what you cannot (their behavior). Focus energy only on what is within your power.',
+        technique: 'Separate external chaos from your internal state (Hegemonikon). Focus energy only on your judgment and your next action. Everything else is indifferent.',
         color: 'amber'
     },
     {
@@ -16,7 +16,7 @@ const protocols = [
         icon: Eye,
         title: 'View From Above',
         prompt: 'Will this matter in 5 years?',
-        technique: 'Zoom out. See yourself from space. This moment is a pixel in the cosmic tapestry. Your reaction determines if it becomes a scar or a lesson.',
+        technique: 'Zoom out temporally and physically. Silence the Amygdala by viewing this moment as a single pixel in an eternal tapestry. Perspective is your superpower.',
         color: 'blue'
     },
     {
@@ -24,15 +24,15 @@ const protocols = [
         icon: Hourglass,
         title: 'Memento Mori',
         prompt: 'How would I act if this were our last day?',
-        technique: 'Your time with them is finite. Anger wastes precious seconds. Choose presence over pride.',
+        technique: 'Presence over pride. Your time with them is a finite loan from the universe. Every second of rage is a second of life that is gone forever.',
         color: 'purple'
     },
     {
         id: 'pause',
         icon: Shield,
         title: 'Tactical Pause',
-        prompt: 'Breathe. Count to 3. Respond, don\'t react.',
-        technique: '1. Feel the anger rising. 2. Identify it: "This is my amygdala hijacking me." 3. Pause. Breathe. 4. Engage prefrontal cortex: Choose wisdom.',
+        prompt: 'Breathe. Identify the hijack. Choose wisdom.',
+        technique: '1. Detect the "Heat" in your chest. 2. Identify it: "This is a biological prediction error." 3. Pause for 3 cycles of breath. 4. Re-engage the Prefrontal Cortex.',
         color: 'emerald'
     }
 ];

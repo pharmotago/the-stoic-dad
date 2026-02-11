@@ -9,7 +9,7 @@ A modern web application that transforms ancient Stoic philosophy into practical
 ## ✨ Features
 
 ### 🎓 Learning System
-- **10 Progressive Modules**: From Dichotomy of Control to The Final Exam
+- **30 Progressive Modules**: From Dichotomy of Control to The Final Exam
 - **Interactive Quizzes**: Knowledge checks with instant feedback
 - **Scenario-Based Learning**: Real-world parenting challenges with Stoic solutions
 
@@ -95,26 +95,38 @@ src/
 │   ├── page.tsx              # Main application
 │   ├── layout.tsx            # Root layout
 │   └── globals.css           # Global styles + animations
-├── components/
-│   ├── Header.tsx            # Top navigation
-│   ├── ModuleCard.tsx        # Learning module card
-│   ├── LessonView.tsx        # Lesson content display
-│   ├── QuizModal.tsx         # Interactive quiz
-│   ├── StreakTracker.tsx     # Habit tracking
-│   ├── ProgressRing.tsx      # Circular progress
-│   ├── EmergencyToolkit.tsx  # Crisis protocols
-│   ├── JournalEntry.tsx      # Reflection notes
-│   ├── StatsPanel.tsx        # Analytics
-│   └── WelcomeModal.tsx      # Onboarding
+├── components/               # Core Stoic Dad components
 ├── data/
-│   ├── index.ts              # Course data registry
-│   └── modules/              # Individual module files
-│       ├── module1.ts
-│       ├── module2.ts
-│       └── ...
+│   ├── index.ts              # 30-Day course data registry
+│   └── modules/              # Individual daily module files
+├── store/
+│   └── useCourseStore.ts     # Unified Zustand state management
 └── lib/
-    ├── schemas.ts            # TypeScript types
+    ├── gamification.ts       # XP and Level logic
+    ├── schemas.ts            # Zod validation schemas
     └── utils.ts              # Utility functions
+```
+
+---
+
+## 🧬 Genetic Evolution Script
+
+The project includes a sophisticated `scripts/evolve.js` engine that allows the application to "evolve" its own content:
+
+- **Mutation Engine**: Automatically varies headlines and marketing copy.
+- **Genetic Loops**: Can be run in `--batch` mode to test 1000s of variations.
+- **Auto-Commit**: Automatically git-commits successful "evolutions" after build verification.
+- **Daemon Mode**: Can run as a background process to continuously improve the PWA's messaging.
+
+```bash
+# Run a single evolution mutation
+npm run evolve
+
+# Run a batch of 10 mutations
+node scripts/evolve.js --batch 10
+
+# Run the evolution daemon
+npm run evolve:daemon
 ```
 
 ---
@@ -242,3 +254,13 @@ For questions or feedback, this is a demo application built as a code example.
 _"We are what we repeatedly do. Excellence, then, is not an act, but a habit." — Aristotle_
 
 _Deployment Check: 2026-02-02T05:43:00_
+
+## 🚀 Deployment
+
+The project is deployed to Vercel.
+
+**Production URL:** [the-stoic-dad.vercel.app](https://the-stoic-dad.vercel.app)
+**Vercel Project:** `the-stoic-dad`
+
+> [!IMPORTANT]
+> When re-linking the project, ensure you use the `the-stoic-dad` project name in the `pharmotago` team.
