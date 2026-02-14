@@ -31,6 +31,7 @@ interface CourseState {
     completedDates: string[]; // ISO Date strings 'YYYY-MM-DD'
     theme: 'dark' | 'paper';
     focusMode: boolean;
+    isPremium: boolean;
 
     // Actions
     setLoaded: () => void;
@@ -45,6 +46,7 @@ interface CourseState {
     markDateComplete: () => void;
     setTheme: (theme: 'dark' | 'paper') => void;
     setFocusMode: (active: boolean) => void;
+    setPremium: (active: boolean) => void;
     initializeStore: () => void;
     saveProgress: () => void; // Deprecated
 }
@@ -66,6 +68,7 @@ export const useCourseStore = create<CourseState>()(
             completedDates: [],
             theme: 'dark',
             focusMode: false,
+            isPremium: false,
 
             setLoaded: () => set({ isLoaded: true }),
 
@@ -87,7 +90,8 @@ export const useCourseStore = create<CourseState>()(
                 longestStreak: 0,
                 lastCheckIn: null,
                 totalXp: 0,
-                completedDates: []
+                completedDates: [],
+                isPremium: false
             }),
 
             setPanicMode: (active: boolean) => set({ isPanicMode: active }),
@@ -152,6 +156,8 @@ export const useCourseStore = create<CourseState>()(
 
             setFocusMode: (active) => set({ focusMode: active }),
 
+            setPremium: (active) => set({ isPremium: active }),
+
             initializeStore: () => {
                 const today = new Date().toDateString();
                 const yesterday = new Date(Date.now() - 86400000).toDateString();
@@ -178,7 +184,8 @@ export const useCourseStore = create<CourseState>()(
                 lastCheckIn: state.lastCheckIn,
                 totalXp: state.totalXp,
                 completedDates: state.completedDates,
-                theme: state.theme
+                theme: state.theme,
+                isPremium: state.isPremium
             }),
             onRehydrateStorage: () => (state) => {
                 state?.initializeStore();

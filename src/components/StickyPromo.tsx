@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { X, Clock } from 'lucide-react';
+import { X, Clock, Star } from 'lucide-react';
+import { useCourseStore } from '@/store/useCourseStore';
+import { calculateLevel } from '@/lib/gamification';
+import { useLicensing } from '@ecosystem/shared-ui';
 
 export function StickyPromo() {
+    const { totalXp } = useCourseStore();
+    const { isPremium } = useLicensing();
     const [isVisible, setIsVisible] = useState(false);
     const [timeLeft, setTimeLeft] = useState(24 * 60 * 60); // 24 hours in seconds
 
+    const { level } = calculateLevel(totalXp);
+
     useEffect(() => {
-        // Show after 5 seconds
-        const timer = setTimeout(() => setIsVisible(true), 5000);
-        return () => clearTimeout(timer);
-    }, []);
+        // Show only for non-premium users at Level 2 or higher (modified from Level 5 for testing/earlier impact)
+        if (!isPremium && level >= 2) {
+            const timer = setTimeout(() => setIsVisible(true), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [isPremium, level]);
 
     useEffect(() => {
         const interval = setInterval(() => {

@@ -1,0 +1,20 @@
+[
+    {
+        "id": "stoic-1770917011837",
+        "role": "Stoic Mentor",
+        "content": "Virtue audit complete. Justice protocol has been prioritized in your current curriculum.",
+        "type": "insight"
+    },
+    {
+        "id": "stoic-1770917011838",
+        "role": "Forge",
+        "content": "Audio rendering pipeline optimized. Lesson playback latency reduced.",
+        "type": "optimization"
+    },
+    {
+        "id": "stoic-1770917011839",
+        "role": "Sentinel",
+        "content": "Internal citadel verified. Progress data secured.",
+        "type": "verification"
+    }
+]

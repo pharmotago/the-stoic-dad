@@ -11,16 +11,50 @@ class AudioService {
         }
     }
 
+    private cleanText(text: string): string {
+        return text
+            .replace(/[*#_~`>]/g, '') // Strip markdown characters
+            .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1') // Strip links but keep text
+            .replace(/\n+/g, ' ') // Replace newlines with spaces for smoother flow
+            .trim();
+    }
+
+    private getBestVoice(): SpeechSynthesisVoice | null {
+        if (!this.synth) return null;
+        const voices = this.synth.getVoices();
+
+        // Prioritize natural sounding male voices for the 'Mentor' persona
+        const priorities = [
+            'Google US English',
+            'Microsoft Guy',
+            'English United States',
+            'en-US'
+        ];
+
+        for (const name of priorities) {
+            const voice = voices.find(v => v.name.includes(name) || v.lang.includes(name));
+            if (voice) return voice;
+        }
+
+        return voices[0] || null;
+    }
+
     speak(text: string, persona: VoicePersona = 'mentor', onBoundary?: (index: number) => void, onEnd?: () => void) {
         if (!this.synth) return;
 
         this.stop();
 
-        this.currentUtterance = new SpeechSynthesisUtterance(text);
+        const cleanedText = this.cleanText(text);
+        this.currentUtterance = new SpeechSynthesisUtterance(cleanedText);
+
+        const bestVoice = this.getBestVoice();
+        if (bestVoice) {
+            this.currentUtterance.voice = bestVoice;
+        }
 
         // Stoic voice configuration
-        this.currentUtterance.rate = 0.9;
-        this.currentUtterance.pitch = 0.85;
+        this.currentUtterance.rate = 0.85; // Slightly slower for gravity
+        this.currentUtterance.pitch = 0.9;  // Slightly deeper
 
         this.currentUtterance.onboundary = (event) => {
             if (onBoundary) onBoundary(event.charIndex);

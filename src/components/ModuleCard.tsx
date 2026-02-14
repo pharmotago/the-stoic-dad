@@ -37,11 +37,11 @@ export const ModuleCard = memo(function ModuleCard({ module, isActive, isComplet
             aria-disabled={isLocked}
             aria-label={`${module.title}, Day ${module.id}. ${isCompleted ? 'Completed' : isLocked ? 'Locked' : 'Available'}. ${module.summary}`}
             className={cn(
-                "relative p-5 rounded-2xl border transition-all duration-500 group cursor-pointer overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500",
+                "relative p-6 rounded-none border-l-4 transition-all duration-500 group cursor-pointer overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500",
                 isActive
-                    ? "bg-gradient-to-br from-slate-800 to-slate-900 border-amber-500/50 shadow-2xl shadow-amber-900/10 ring-1 ring-amber-500/10 scale-[1.02]"
-                    : "bg-slate-900/40 border-slate-800 hover:border-slate-700 hover:bg-slate-800/60 hover:-translate-y-1 hover:shadow-xl",
-                isLocked && "opacity-60 cursor-not-allowed hover:bg-slate-900/40 hover:border-slate-800 hover:translate-y-0 hover:shadow-none bg-slate-900/20"
+                    ? "monolithic-slab border-amber-500 shadow-2xl shadow-amber-900/40 scale-[1.02] z-10 matrix-glow"
+                    : "bg-slate-900/40 border-white/5 hover:border-amber-500/50 hover:bg-slate-900/80 hover:-translate-y-1 hover:shadow-2xl hover:shadow-amber-500/10",
+                isLocked && "opacity-40 cursor-not-allowed grayscale bg-slate-950"
             )}
         >
             <div className="flex items-start justify-between gap-4">

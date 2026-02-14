@@ -25,8 +25,9 @@ export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
             play('click');
             triggerHaptic(HapticPatterns.light);
 
-            const { sessionId } = await createCheckoutSession('price_stoic_lifetime');
-            analytics.track('checkout_initiated', { priceId: 'price_stoic_lifetime' });
+            const priceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_LIFETIME || 'price_stoic_lifetime';
+            const { sessionId } = await createCheckoutSession(priceId);
+            analytics.track('checkout_initiated', { priceId });
             const stripe = await getStripe();
 
             if (stripe) {

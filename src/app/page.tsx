@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import courseData from '@/data';
 import { Header } from '@/components/Header';
 import { DynamicHeader } from '@/components/DynamicHeader';
@@ -9,8 +10,6 @@ import { LessonView } from '@/components/LessonView';
 
 import { XP_CONSTANTS, calculateLevel } from '@/lib/gamification';
 import dynamic from 'next/dynamic';
-import { analytics } from '@/lib/analytics';
-
 // Performance: Dynamic Imports for heavy components and modals
 const EmergencyToolkit = dynamic(() => import('@/components/EmergencyToolkit').then(mod => mod.EmergencyToolkit), { ssr: false });
 const StatsPanel = dynamic(() => import('@/components/StatsPanel').then(mod => mod.StatsPanel), { ssr: false });
@@ -34,7 +33,9 @@ const DailyQuote = dynamic(() => import('@/components/DailyQuote').then(mod => m
 const QuickActions = dynamic(() => import('@/components/QuickActions').then(mod => mod.QuickActions));
 const LoadingSkeleton = dynamic(() => import('@/components/LoadingSkeleton').then(mod => mod.LoadingSkeleton));
 const MobileMenu = dynamic(() => import('@/components/MobileMenu').then(mod => mod.MobileMenu), { ssr: false });
-import { SynthesisOverlay } from '@/components/SynthesisOverlay';
+
+import { AdSense, useLicensing, ExitIntentModal, CrossPromo } from '@ecosystem/shared-ui';
+import { BrainCircuit } from 'lucide-react';
 
 // Code Splitting for heavy modals
 const QuizModal = dynamic(() => import('@/components/QuizModal').then(mod => mod.QuizModal), {
@@ -66,25 +67,48 @@ export default function Home() {
         completeModule,
         addXp,
         resetProgress,
-        isLoaded
+        isLoaded,
+        isPremium,
+        setPremium
     } = useCourseStore();
 
-    // Premium Logic
-    const [isPremium, setIsPremium] = useState(false);
-    const [showPremiumModal, setShowPremiumModal] = useState(false);
+    const { isPremium: isSharedPremium } = useLicensing();
+
+    const [showLanguagePromo, setShowLanguagePromo] = useState(false);
+
+    useEffect(() => {
+        const { level } = calculateLevel(totalXp);
+        if (level >= 3) {
+            setShowLanguagePromo(true);
+        }
+    }, [totalXp]);
+
+    // Sync shared premium
+    useEffect(() => {
+        if (isSharedPremium && !isPremium) {
+            setPremium(true);
+        }
+    }, [isSharedPremium, isPremium, setPremium]);
 
     // Modals & UI State
-    const [showQuiz, setShowQuiz] = useState(false);
-    const [showEmergency, setShowEmergency] = useState(false);
-    const [showJournal, setShowJournal] = useState(false);
-    const [showStats, setShowStats] = useState(false);
-    const [showWelcome, setShowWelcome] = useState(false);
-    const [showSettings, setShowSettings] = useState(false);
-    const [showSearch, setShowSearch] = useState(false);
-    const [showTutorial, setShowTutorial] = useState(false);
-    const [showMobileMenu, setShowMobileMenu] = useState(false);
-    const [showCommunity, setShowCommunity] = useState(false);
-    const [showShare, setShowShare] = useState(false);
+    const [modals, setModals] = useState({
+        quiz: false,
+        emergency: false,
+        journal: false,
+        stats: false,
+        welcome: false,
+        settings: false,
+        search: false,
+        tutorial: false,
+        mobileMenu: false,
+        community: false,
+        share: false,
+        premium: false
+    });
+
+    const toggleModal = (key: keyof typeof modals, value: boolean) => {
+        setModals(prev => ({ ...prev, [key]: value }));
+    };
 
     // Toast notifications
     const { showToast, ToastComponent } = useToast();
@@ -96,32 +120,31 @@ export default function Home() {
         const hasSeenWelcome = localStorage.getItem('stoic-dad-welcomed');
         const hasSeenTutorial = localStorage.getItem('stoic-dad-tutorial');
         const savedPremium = localStorage.getItem('stoic-dad-premium');
-
-        if (savedPremium === 'true') setIsPremium(true);
+        if (savedPremium === 'true') setPremium(true);
 
         if (!hasSeenWelcome) {
-            setShowWelcome(true);
+            toggleModal('welcome', true);
         } else if (!hasSeenTutorial) {
-            setShowTutorial(true);
+            toggleModal('tutorial', true);
         }
     }, [isLoaded]);
 
     const handleWelcomeClose = () => {
-        setShowWelcome(false);
+        toggleModal('welcome', false);
         localStorage.setItem('stoic-dad-welcomed', 'true');
-        setTimeout(() => setShowTutorial(true), 500);
+        setTimeout(() => toggleModal('tutorial', true), 500);
     };
 
     const handleUnlockPremium = () => {
-        setIsPremium(true);
+        setPremium(true);
         localStorage.setItem('stoic-dad-premium', 'true');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleModuleClick = (module: Module) => {
-        // Premium Lock Visual
-        if (!isPremium && module.id > 1) {
-            setShowPremiumModal(true);
+        // Premium Lock Visual (Day 3 Gating)
+        if (!isPremium && module.id > 3) {
+            toggleModal('premium', true);
             return;
         }
 
@@ -133,7 +156,7 @@ export default function Home() {
     };
 
     const handleQuizSuccess = () => {
-        setShowQuiz(false);
+        toggleModal('quiz', false);
 
         if (activeModule) {
             const oldLevel = calculateLevel(totalXp).level;
@@ -158,20 +181,23 @@ export default function Home() {
 
     // Keyboard shortcuts
     useKeyboardShortcuts({
-        'e': () => setShowEmergency(true),
-        'j': () => activeModule && setShowJournal(true),
-        's': () => setShowStats(!showStats),
-        'k': () => setShowSearch(true),
-        '/': () => setShowSearch(true),
+        'e': () => toggleModal('emergency', true),
+        'j': () => activeModule && toggleModal('journal', true),
+        's': () => toggleModal('stats', !modals.stats),
+        'k': () => toggleModal('search', true),
+        '/': () => toggleModal('search', true),
         'escape': () => {
-            setShowEmergency(false);
-            setShowJournal(false);
-            setShowQuiz(false);
-            setShowWelcome(false);
-            setShowSearch(false);
-            setShowPremiumModal(false);
+            setModals(prev => ({
+                ...prev,
+                emergency: false,
+                journal: false,
+                quiz: false,
+                welcome: false,
+                search: false,
+                premium: false
+            }));
         }
-    }, !activeModule || !showQuiz);
+    }, !activeModule || !modals.quiz);
 
     const handleExportJournal = () => { exportJournalData(courseData.length); };
     const handleResetProgress = () => {
@@ -185,8 +211,10 @@ export default function Home() {
 
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-amber-500/30">
-            <SynthesisOverlay />
+        <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-amber-500/30 relative overflow-hidden">
+            {/* Full Site Scanline */}
+            <div className="matrix-scanline animate-scanline" />
+
             {ToastComponent}
 
             {/* Dynamic Imperial Header */}
@@ -195,12 +223,12 @@ export default function Home() {
                 currentStreak={currentStreak}
                 completedCount={completedModules.length}
                 totalCount={courseData.length}
-                onMobileMenuToggle={() => setShowMobileMenu(true)}
+                onMobileMenuToggle={() => toggleModal('mobileMenu', true)}
             />
 
             {/* Emergency FAB */}
             <button
-                onClick={() => setShowEmergency(true)}
+                onClick={() => toggleModal('emergency', true)}
                 className="fixed bottom-6 right-6 z-40 p-4 bg-red-600 hover:bg-red-500 text-white rounded-full shadow-2xl transform hover:scale-110 transition-all duration-200 animate-pulse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                 title="Emergency Protocols"
                 aria-label="Open Emergency Protocols"
@@ -214,11 +242,11 @@ export default function Home() {
                         <LessonView
                             module={activeModule}
                             onBack={() => setActiveModule(null)}
-                            onTakeQuiz={() => setShowQuiz(true)}
+                            onTakeQuiz={() => toggleModal('quiz', true)}
                         />
 
                         <button
-                            onClick={() => setShowJournal(true)}
+                            onClick={() => toggleModal('journal', true)}
                             className="mt-6 w-full py-3 bg-slate-900/50 hover:bg-slate-800 text-slate-300 font-medium rounded-xl flex items-center justify-center gap-2 transition-colors border border-slate-700/50"
                         >
                             <BookText className="w-5 h-5" />
@@ -228,62 +256,66 @@ export default function Home() {
                 ) : (
                     <div className="space-y-20">
                         {/* HERO SECTION */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            <div className="text-center lg:text-left space-y-8">
-                                <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-[1.1]">
+                        <div className="relative py-20 md:py-32 flex flex-col items-center text-center space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                            {/* Decorative Pillars */}
+                            <div className="absolute left-0 top-0 w-px h-full bg-gradient-to-b from-transparent via-amber-500/20 to-transparent hidden xl:block" />
+                            <div className="absolute right-0 top-0 w-px h-full bg-gradient-to-b from-transparent via-amber-500/20 to-transparent hidden xl:block" />
+
+                            <div className="space-y-6 max-w-4xl">
+                                <div className="flex items-center justify-center gap-4 mb-4">
+                                    <div className="h-px w-12 bg-amber-500/30" />
+                                    <span className="text-[10px] font-black tracking-[0.6em] text-amber-500 uppercase">Est. 2026 // The Protocol</span>
+                                    <div className="h-px w-12 bg-amber-500/30" />
+                                </div>
+                                <h1 className="text-6xl md:text-9xl font-black tracking-tighter text-white leading-[0.85] uppercase text-shadow-glow">
                                     The Unshakable <br />
-                                    <span className="text-cyan-400">Patriarch.</span>
+                                    <span className="text-burnished-amber">Patriarch.</span>
                                 </h1>
-                                <p className="text-xl text-slate-400 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                                    Transform your legacy through a neuroscience-backed Stoic protocol. Master the biological override and reclaim your family's peace.
+                                <p className="text-2xl text-slate-400 font-light leading-relaxed max-w-2xl mx-auto tracking-tight">
+                                    Forge your legacy through a neuroscience-backed <span className="text-white font-medium italic">Stoic protocol</span>. Reclaim your internal citadel.
                                 </p>
-
-                                <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-                                    <button
-                                        onClick={() => handleModuleClick(courseData[0])}
-                                        className="w-full sm:w-auto px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl border border-slate-700 transition-all hover:scale-105"
-                                    >
-                                        Start Module 1 (Free)
-                                    </button>
-
-                                    <button
-                                        onClick={() => setShowPremiumModal(true)}
-                                        className="w-full sm:w-auto px-8 py-4 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold rounded-xl shadow-lg shadow-amber-500/20 transition-all hover:scale-105 flex items-center justify-center gap-2"
-                                    >
-                                        <Shield className="w-5 h-5" />
-                                        Unlock Full Protocol ($29)
-                                    </button>
-                                </div>
-
-                                <div className="pt-4 flex items-center justify-center lg:justify-start gap-4 text-sm text-slate-500 font-medium">
-                                    <div className="flex -space-x-2">
-                                        {[1, 2, 3, 4].map(i => (
-                                            <div key={i} className="w-8 h-8 rounded-full bg-slate-800 border-2 border-slate-950" />
-                                        ))}
-                                    </div>
-                                    <p>Join 5,000+ Fathers</p>
-                                </div>
                             </div>
 
-                            {/* 3D Visual */}
-                            <div className="hidden lg:block">
-                                <Hero3DPreview />
+                            <div className="flex flex-col sm:flex-row items-center gap-6 justify-center w-full max-w-lg">
+                                <button
+                                    onClick={() => handleModuleClick(courseData[0])}
+                                    className="w-full px-12 py-5 bg-white text-black font-black uppercase tracking-[0.3em] rounded-none hover:bg-amber-500 transition-all hover:scale-105 active:scale-95 shadow-2xl"
+                                >
+                                    Begin Trial
+                                </button>
+                                <button
+                                    onClick={() => toggleModal('premium', true)}
+                                    className="w-full px-12 py-5 bg-slate-900 text-amber-500 font-black uppercase tracking-[0.3em] rounded-none border-2 border-amber-500/20 hover:border-amber-500/50 transition-all hover:scale-105 active:scale-95 shadow-2xl"
+                                >
+                                    Unlock Protocol
+                                </button>
+                            </div>
+
+                            <div className="pt-8 flex items-center justify-center gap-6 text-[10px] font-black text-slate-600 uppercase tracking-widest">
+                                <span className="flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500/40" />
+                                    5.4K Active Fathers
+                                </span>
+                                <span className="flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500/40" />
+                                    v4.2 Protocol
+                                </span>
                             </div>
                         </div>
 
-                        {/* Social Proof Strip */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                        {/* Social Proof Strip: The Council of Peers */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-white/5 divide-y md:divide-y-0 md:divide-x divide-white/5 bg-slate-950">
                             <Testimonial
-                                quote="The 'Binary Filter' technique saved my relationship with my son. I finally learned how to kill the Red Mist before it spoke."
-                                author="Mark, Sydney"
+                                quote="The 'Binary Filter' technique is a tactical manual. I learned how to kill the Red Mist before it spoke."
+                                author="Commander Mark, Sydney"
                             />
                             <Testimonial
-                                quote="This isn't just theory. It's a tactical manual for modern fathers who refuse to be driven by their impulses."
-                                author="James, London"
-                            />
-                            <Testimonial
-                                quote="The combination of Marcus Aurelius and modern neuroscience is a masterstroke. Absolute game-changer."
+                                quote="Marcus Aurelius meets modern neuroscience. This is the absolute game-changer for modern parenting."
                                 author="David, New York"
+                            />
+                            <Testimonial
+                                quote="Tactical, severe, and effective. Reclaim your presence as a father immediately."
+                                author="James, London"
                             />
                         </div>
 
@@ -311,7 +343,7 @@ export default function Home() {
                                         // If Premium AND id > highestUnlocked -> Progression Locked (shows padlock, no click or standard logic)
                                         // Currently ModuleCard handles "isLocked". We'll overload it or pass a custom click.
 
-                                        const isPremiumLocked = !isPremium && module.id > 1;
+                                        const isPremiumLocked = !isPremium && module.id > 3;
                                         const isProgressionLocked = module.id - 1 > unlockedIndex;
 
                                         return (
@@ -359,13 +391,18 @@ export default function Home() {
                                 />
 
                                 <QuickActions
-                                    onOpenEmergency={() => setShowEmergency(true)}
-                                    onOpenStats={() => setShowStats(!showStats)}
+                                    onOpenEmergency={() => toggleModal('emergency', true)}
+                                    onOpenStats={() => toggleModal('stats', !modals.stats)}
                                     onExportJournal={handleExportJournal}
                                     onResetProgress={handleResetProgress}
-                                    onOpenSearch={() => setShowSearch(true)}
-                                    onOpenCommunity={() => setShowCommunity(true)}
+                                    onOpenSearch={() => toggleModal('search', true)}
+                                    onOpenCommunity={() => toggleModal('community', true)}
                                 />
+
+                                {/* AdSense Unit */}
+                                <div className="glass-card rounded-2xl p-4 flex justify-center items-center min-h-[250px] bg-slate-900/50">
+                                    <AdSense adSlot="sidebar-ad-1" adFormat="rectangle" />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -377,42 +414,61 @@ export default function Home() {
                 <>
                     <QuizModal
                         module={activeModule}
-                        isOpen={showQuiz}
-                        onClose={() => setShowQuiz(false)}
+                        isOpen={modals.quiz}
+                        onClose={() => toggleModal('quiz', false)}
                         onSuccess={handleQuizSuccess}
                     />
                     <JournalEntry
                         moduleId={activeModule.id}
                         moduleTitle={activeModule.title}
-                        isOpen={showJournal}
-                        onClose={() => setShowJournal(false)}
+                        isOpen={modals.journal}
+                        onClose={() => toggleModal('journal', false)}
                     />
                 </>
             )}
 
-            <EmergencyToolkit isOpen={showEmergency} onClose={() => setShowEmergency(false)} />
-            <WelcomeModal isOpen={showWelcome} onClose={handleWelcomeClose} />
-            <SettingsPanel isOpen={showSettings} onClose={() => setShowSettings(false)} />
-            <CommunityModal isOpen={showCommunity} onClose={() => setShowCommunity(false)} currentXp={totalXp} currentStreak={currentStreak} />
-            <ShareModal isOpen={showShare} onClose={() => setShowShare(false)} totalXp={totalXp} streak={currentStreak} completedModules={completedModules.length} />
-            <ModuleSearch isOpen={showSearch} onClose={() => setShowSearch(false)} onSelectModule={(module) => { handleModuleClick(module); window.scrollTo({ top: 0, behavior: 'instant' }); }} />
-            <MobileMenu isOpen={showMobileMenu} onToggle={() => setShowMobileMenu(!showMobileMenu)} onNavigate={(action) => { if (action === 'home') setActiveModule(null); if (action === 'stats') setShowStats(!showStats); if (action === 'emergency') setShowEmergency(true); if (action === 'settings') setShowSettings(true); if (action === 'community') setShowCommunity(true); }} currentPage={activeModule ? 'module' : 'home'} totalXp={totalXp} />
+            <EmergencyToolkit isOpen={modals.emergency} onClose={() => toggleModal('emergency', false)} />
+            <WelcomeModal isOpen={modals.welcome} onClose={handleWelcomeClose} />
+            <SettingsPanel isOpen={modals.settings} onClose={() => toggleModal('settings', false)} />
+            <CommunityModal isOpen={modals.community} onClose={() => toggleModal('community', false)} currentXp={totalXp} currentStreak={currentStreak} />
+            <ShareModal isOpen={modals.share} onClose={() => toggleModal('share', false)} totalXp={totalXp} streak={currentStreak} completedModules={completedModules.length} />
+            <ModuleSearch isOpen={modals.search} onClose={() => toggleModal('search', false)} onSelectModule={(module) => { handleModuleClick(module); window.scrollTo({ top: 0, behavior: 'instant' }); }} />
+            <MobileMenu isOpen={modals.mobileMenu} onToggle={() => toggleModal('mobileMenu', !modals.mobileMenu)} onNavigate={(action) => { if (action === 'home') setActiveModule(null); if (action === 'stats') toggleModal('stats', !modals.stats); if (action === 'emergency') toggleModal('emergency', true); if (action === 'settings') toggleModal('settings', true); if (action === 'community') toggleModal('community', true); }} currentPage={activeModule ? 'module' : 'home'} totalXp={totalXp} />
 
             {/* New Premium Modal */}
             <PremiumModal
-                isOpen={showPremiumModal}
-                onClose={() => setShowPremiumModal(false)}
+                isOpen={modals.premium}
+                onClose={() => toggleModal('premium', false)}
                 onUnlock={handleUnlockPremium}
             />
 
             {!isPremium && <StickyPromo />}
+
+            {!isPremium && (
+                <ExitIntentModal
+                    onClose={() => { }}
+                    onClaim={() => { }}
+                />
+            )}
+
+            <CrossPromo
+                id="sd-to-lc"
+                targetAppName="Language Coach"
+                hook="Mastering discipline often requires expanding your cognitive horizon. Start neural training."
+                cta="Start Coaching"
+                url="https://language-coach-app.vercel.app"
+                icon={BrainCircuit}
+                color="emerald"
+                isVisible={showLanguagePromo}
+                onClose={() => setShowLanguagePromo(false)}
+            />
 
             <footer className="mt-20 py-12 border-t border-slate-900/50 container mx-auto px-4 max-w-6xl">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-white/40 text-sm font-black tracking-widest uppercase">
                     <p>© 2026 MCJP Ecosystem | Precise. Powerful. Productive.</p>
                     <div className="flex gap-8">
                         <span className="hover:text-amber-500 cursor-pointer transition-colors">Documentation</span>
-                        <span className="hover:text-amber-500 cursor-pointer transition-colors">Privacy Protocol</span>
+                        <Link href="/privacy" className="hover:text-amber-500 cursor-pointer transition-colors">Privacy Protocol</Link>
                         <span className="hover:text-amber-500 cursor-pointer transition-colors">System Status</span>
                     </div>
                 </div>
@@ -423,10 +479,20 @@ export default function Home() {
 
 function Testimonial({ quote, author }: { quote: string, author: string }) {
     return (
-        <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
-            <div className="text-amber-500 mb-3">★★★★★</div>
-            <p className="text-white/80 italic mb-4">"{quote}"</p>
-            <p className="text-sm font-bold text-white">— {author}</p>
+        <div className="bg-slate-950 p-10 flex flex-col justify-between group">
+            <div>
+                <div className="flex gap-1 mb-6">
+                    {[1, 2, 3, 4, 5].map(i => (
+                        <div key={i} className="w-1 h-1 bg-amber-500/40" />
+                    ))}
+                </div>
+                <p className="text-white/60 font-light italic text-lg leading-relaxed mb-8 group-hover:text-white transition-colors">
+                    "{quote}"
+                </p>
+            </div>
+            <p className="text-[10px] font-black text-amber-500/60 uppercase tracking-[0.3em]">
+                // {author}
+            </p>
         </div>
     );
 }

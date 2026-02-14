@@ -21,10 +21,22 @@ export function ProgressRing({
     return (
         <div className={cn("relative", className)} style={{ width: size, height: size }}>
             <svg
-                className="transform -rotate-90"
+                className="transform -rotate-90 overflow-visible"
                 width={size}
                 height={size}
             >
+                {/* Decorative Outer Dash Ring */}
+                <circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius + 8}
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    fill="none"
+                    strokeDasharray="4 4"
+                    className="text-amber-500/20 animate-pulse"
+                />
+
                 {/* Background circle */}
                 <circle
                     cx={size / 2}
@@ -46,7 +58,7 @@ export function ProgressRing({
                     fill="none"
                     strokeDasharray={circumference}
                     strokeDashoffset={offset}
-                    className="text-amber-500 transition-all duration-1000 ease-out"
+                    className="text-amber-500 transition-all duration-1000 ease-out drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]"
                     strokeLinecap="round"
                 />
             </svg>

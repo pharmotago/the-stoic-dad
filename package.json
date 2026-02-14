@@ -1,6 +1,7 @@
 {
-    "name": "stoic-dad",
+    "name": "@ecosystem/the-stoic-dad",
     "version": "0.1.0",
+    "type": "module",
     "private": true,
     "scripts": {
         "dev": "next dev",
@@ -14,7 +15,9 @@
     "dependencies": {
         "@google/generative-ai": "^0.24.1",
         "@stripe/stripe-js": "^8.7.0",
+        "@supabase/supabase-js": "^2.95.3",
         "@tailwindcss/typography": "^0.5.19",
+        "@vercel/analytics": "^1.6.1",
         "canvas-confetti": "^1.9.3",
         "clsx": "^2.1.0",
         "framer-motion": "^12.29.2",
@@ -23,9 +26,11 @@
         "react": "^18",
         "react-dom": "^18",
         "react-markdown": "^10.1.0",
+        "stripe": "^14.0.0",
         "tailwind-merge": "^2.3.0",
         "zod": "^4.3.6",
-        "zustand": "^5.0.10"
+        "zustand": "^5.0.10",
+        "@ecosystem/shared-ui": "*"
     },
     "devDependencies": {
         "@testing-library/jest-dom": "^6.9.1",
