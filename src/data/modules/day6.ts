@@ -6,6 +6,7 @@ export const day6: Module = {
     summary: "Sophrosyne: Mastering your inputs to maximize your leadership.",
     isLocked: true,
     audioUrl: "https://lh3.googleusercontent.com/notebooklm/ANHLwAyJ5YPLb5k8wHg9Ff3K1bS46lu_tx5lcsUeDZ80_wdBEI_BvM1lLfBITuNcsnCRgPWdkPjwj-nyUGLLPmTHaTSQcBAqWTApnaH05a55-AgIn-4iWkESVofF_v620eiungb6GAShLMcAa99KP87CkULUzc0aYdA=m140-dv",
+    muxPlaybackId: "nVyVL74T5U8eaBO5I9mvhBSGbbS4Tzfsa2IWVSa8LSs",
     readTime: 6,
     content: {
         full_lesson_content: `🏛️ PART 1: THE FOUNDATION

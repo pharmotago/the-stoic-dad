@@ -24,9 +24,21 @@ ts-debug.log*
 
 # local env files
 .env*.local
+.env
+.env.development.local
+.env.test.local
+.env.production.local
 
 # vercel
 .vercel
+
+# deployment artifacts
+*.zip
+*.tar.gz
+*.rar
+/dist
+/build
+/out
 
 # typescript
 *.tsbuildinfo
