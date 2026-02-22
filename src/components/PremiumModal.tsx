@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, Star, Check, X, CreditCard, ArrowRight } from 'lucide-react';
+import { Lock, Check, X, CreditCard, ArrowRight } from 'lucide-react';
 import { useToast } from './Toast';
 import { useSound } from '@/lib/sound';
 import { triggerHaptic, HapticPatterns } from '@/lib/haptics';
@@ -46,20 +46,37 @@ export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (code.trim().toUpperCase() === 'STOIC2026') {
-            onUnlock();
-            onClose();
-            play('success');
-            triggerHaptic(HapticPatterns.success);
-            showToast('Premium Access Unlocked! Welcome to the inner circle.', 'success');
-        } else {
+        if (!code.trim()) return;
+
+        try {
+            setIsProcessing(true); // Re-using state for key verification
+            const res = await fetch('/api/verify-key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: code.trim().toUpperCase() }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                onUnlock();
+                onClose();
+                play('success');
+                triggerHaptic(HapticPatterns.success);
+                showToast('Premium Access Unlocked! Welcome to the inner circle.', 'success');
+            } else {
+                throw new Error(data.error || 'Invalid code');
+            }
+        } catch (err: any) {
             setError(true);
             play('lock');
             triggerHaptic(HapticPatterns.error);
-            showToast('Invalid access code', 'error');
+            showToast(err.message, 'error');
             setTimeout(() => setError(false), 2000);
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -138,6 +155,9 @@ export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
                     </div>
 
                     {/* CTA */}
+                    <p className="text-sm text-slate-400 text-center mb-4">
+                        After secure checkout, an email will arrive instantly with your unique License Key. Paste it above to unlock the app.
+                    </p>
                     <div className="space-y-3">
                         <button
                             onClick={handleStripeCheckout}
