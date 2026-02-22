@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase';
 import { sendLicenseKeyEmail } from '@/lib/email';
 import crypto from 'crypto';
 
+export const dynamic = 'force-dynamic';
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-10-16' as any });
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
