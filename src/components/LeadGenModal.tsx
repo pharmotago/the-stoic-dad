@@ -7,6 +7,7 @@ export function LeadGenModal() {
     const [email, setEmail] = useState('');
     const [hasTriggered, setHasTriggered] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         // Trigger 1: Time passed (60s)
@@ -43,20 +44,31 @@ export function LeadGenModal() {
         // For now, simple suppression
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email) return;
 
-        // Mock API Call
-        console.log('Lead Captured:', email);
-        analytics.track('lead_gen_submitted', { email });
+        setIsLoading(true);
+        try {
+            const res = await fetch('/api/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
 
-        localStorage.setItem('lead_captured', 'true');
-        setIsSubmitted(true);
-
-        setTimeout(() => {
-            setIsOpen(false);
-        }, 3000);
+            if (res.ok) {
+                analytics.track('lead_gen_submitted', { email });
+                localStorage.setItem('lead_captured', 'true');
+                setIsSubmitted(true);
+                setTimeout(() => setIsOpen(false), 3000);
+            } else {
+                console.error('Subscription failed');
+            }
+        } catch (error) {
+            console.error('Error submitting email:', error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     if (!isOpen) return null;
@@ -96,9 +108,10 @@ export function LeadGenModal() {
                             </div>
                             <button
                                 type="submit"
-                                className="w-full bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                                disabled={isLoading}
+                                className="w-full bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-wait"
                             >
-                                Send Me The PDF <ArrowRight className="w-4 h-4" />
+                                {isLoading ? "Sending..." : <>Send Me The PDF <ArrowRight className="w-4 h-4" /></>}
                             </button>
                             <p className="text-xs text-center text-slate-600">
                                 No spam. Unsubscribe anytime.

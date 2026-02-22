@@ -1,7 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check, X, Crown } from 'lucide-react';
 
 export function PricingTable() {
+    const [timeLeft, setTimeLeft] = useState(15 * 60);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const formatTime = (seconds: number) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
+
     return (
         <div className="py-20">
             <div className="text-center mb-12">
@@ -50,6 +65,17 @@ export function PricingTable() {
                     </div>
 
                     <h3 className="text-xl font-bold text-amber-500 mb-2">The Unshakable Patriarch</h3>
+
+                    <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                        </span>
+                        <span className="text-red-400 font-mono font-bold text-sm tracking-widest">
+                            OFFER EXPIRES IN: {formatTime(timeLeft)}
+                        </span>
+                    </div>
+
                     <div className="flex items-end gap-2 mb-6">
                         <div className="text-4xl font-bold text-white">$29</div>
                         <div className="text-lg text-slate-500 line-through mb-1">$99</div>

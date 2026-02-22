@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Module } from '@/lib/schemas';
-import { ArrowLeft, BookOpen, Brain, Flame, Maximize2, Minimize2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, Brain, Flame, Maximize2, Minimize2, Lock } from 'lucide-react';
 import { LessonAudio } from './LessonAudio';
+import { useCourseStore } from '@/store/useCourseStore';
+import { cn } from '@/lib/utils';
 
 interface LessonViewProps {
     module: Module;
@@ -71,6 +73,9 @@ interface LessonContentProps {
 }
 
 function LessonContent({ module, onTakeQuiz, theaterMode }: LessonContentProps) {
+    // If the module is locked (id > 3 and not premium)
+    const isPreviewMode = !useCourseStore(state => state.isPremium) && module.id > 3;
+
     return (
         <div className={`bg-slate-950 rounded-none p-8 md:p-12 border-l-8 border-amber-600 shadow-2xl relative overflow-hidden group ${theaterMode ? 'bg-transparent border-white/10' : ''}`}>
             {/* Visual Accent */}
@@ -91,40 +96,66 @@ function LessonContent({ module, onTakeQuiz, theaterMode }: LessonContentProps) 
                 </div>
             </div>
 
-            {/* Advanced Audio Player with TTS Fallback */}
-            <div className="mb-12 p-8 bg-slate-900/50 border border-white/5 relative group/player">
-                <div className="absolute -top-3 left-4 px-2 py-0.5 bg-amber-500 text-[9px] font-black text-black uppercase tracking-widest">Live Transmission</div>
-                <LessonAudio
-                    module={module}
-                    onNext={onTakeQuiz}
-                />
-            </div>
-
-            <div className="prose prose-invert prose-emerald max-w-none mb-12">
-                <div className="whitespace-pre-line text-slate-300 leading-relaxed font-serif text-xl tracking-wide selection:bg-amber-500/30 selection:text-amber-100 first-letter:text-5xl first-letter:font-black first-letter:text-amber-500 first-letter:mr-3 first-letter:float-left first-letter:leading-none">
-                    {module.content.full_lesson_content}
-                </div>
-            </div>
-
-            {module.content.challenge && (
-                <div className="bg-slate-900 p-8 border border-amber-900/40 mb-12 relative">
-                    <div className="absolute -top-3 right-4 px-2 py-0.5 border border-amber-500/40 text-[9px] font-black text-amber-500 uppercase tracking-widest bg-slate-950">Active Duty</div>
-                    <div className="flex items-center gap-3 mb-4 text-amber-500 font-black uppercase tracking-widest text-xs">
-                        <Flame className="w-4 h-4" />
-                        <span>Forge the Shield</span>
+            <div className="relative">
+                <div className={cn(isPreviewMode && "max-h-64 overflow-hidden blur-[2px] pointer-events-none select-none relative z-0 opacity-80 transition-all duration-1000")}>
+                    {/* Advanced Audio Player with TTS Fallback */}
+                    <div className="mb-12 p-8 bg-slate-900/50 border border-white/5 relative group/player">
+                        <div className="absolute -top-3 left-4 px-2 py-0.5 bg-amber-500 text-[9px] font-black text-black uppercase tracking-widest">Live Transmission</div>
+                        <LessonAudio
+                            module={module}
+                            onNext={onTakeQuiz}
+                        />
                     </div>
-                    <p className="text-xl text-amber-100/80 font-serif italic leading-relaxed">
-                        "{module.content.challenge}"
-                    </p>
-                </div>
-            )}
 
-            <button
-                onClick={onTakeQuiz}
-                className="w-full py-6 bg-white text-black font-black uppercase tracking-[0.3em] rounded-none hover:bg-amber-500 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-2xl"
-            >
-                Knowledge Validation
-            </button>
+                    <div className="prose prose-invert prose-emerald max-w-none mb-12">
+                        <div className="whitespace-pre-line text-slate-300 leading-relaxed font-serif text-xl tracking-wide selection:bg-amber-500/30 selection:text-amber-100 first-letter:text-5xl first-letter:font-black first-letter:text-amber-500 first-letter:mr-3 first-letter:float-left first-letter:leading-none">
+                            {module.content.full_lesson_content}
+                        </div>
+                    </div>
+
+                    {module.content.challenge && (
+                        <div className="bg-slate-900 p-8 border border-amber-900/40 mb-12 relative">
+                            <div className="absolute -top-3 right-4 px-2 py-0.5 border border-amber-500/40 text-[9px] font-black text-amber-500 uppercase tracking-widest bg-slate-950">Active Duty</div>
+                            <div className="flex items-center gap-3 mb-4 text-amber-500 font-black uppercase tracking-widest text-xs">
+                                <Flame className="w-4 h-4" />
+                                <span>Forge the Shield</span>
+                            </div>
+                            <p className="text-xl text-amber-100/80 font-serif italic leading-relaxed">
+                                "{module.content.challenge}"
+                            </p>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={onTakeQuiz}
+                        className="w-full py-6 bg-white text-black font-black uppercase tracking-[0.3em] rounded-none hover:bg-amber-500 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-2xl"
+                    >
+                        Knowledge Validation
+                    </button>
+                </div>
+
+                {isPreviewMode && (
+                    <div className="absolute inset-x-0 bottom-0 top-32 flex flex-col justify-end items-center p-8 bg-gradient-to-t from-slate-950 px-4 pt-48 via-slate-950/90 to-transparent z-10">
+                        <Lock className="w-12 h-12 text-amber-500 mb-4 animate-bounce" />
+                        <h3 className="text-2xl font-black text-white mb-2 text-center">Unlock The Protocol</h3>
+                        <p className="text-slate-400 text-center max-w-md mb-6">
+                            This tactic is reserved for the Inner Circle. Reclaim your peace and lead your family with unwavering strength.
+                        </p>
+                        <button
+                            onClick={() => {
+                                if (typeof window !== 'undefined') {
+                                    window.dispatchEvent(new CustomEvent('open-premium-modal'));
+                                }
+                            }}
+                            className="px-8 py-4 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold rounded-xl shadow-xl shadow-amber-500/20 transform hover:-translate-y-1 transition-all"
+                        >
+                            Get Lifetime Access Now
+                        </button>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
+
+

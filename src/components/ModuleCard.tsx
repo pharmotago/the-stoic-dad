@@ -18,8 +18,9 @@ export const ModuleCard = memo(function ModuleCard({ module, isActive, isComplet
 
     const handleClick = () => {
         if (isLocked) {
-            play('lock');
-            triggerHaptic(HapticPatterns.error);
+            play('click');
+            triggerHaptic(HapticPatterns.light);
+            onClick();
         } else {
             play('click');
             triggerHaptic(HapticPatterns.light);
@@ -33,15 +34,15 @@ export const ModuleCard = memo(function ModuleCard({ module, isActive, isComplet
             onMouseEnter={() => !isLocked && play('hover')}
             onKeyDown={(e) => { if (!isLocked && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); handleClick(); } }}
             role="button"
-            tabIndex={isLocked ? -1 : 0}
-            aria-disabled={isLocked}
+            tabIndex={0}
+            aria-disabled={false}
             aria-label={`${module.title}, Day ${module.id}. ${isCompleted ? 'Completed' : isLocked ? 'Locked' : 'Available'}. ${module.summary}`}
             className={cn(
                 "relative p-6 rounded-none border-l-4 transition-all duration-500 group cursor-pointer overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500",
                 isActive
                     ? "monolithic-slab border-amber-500 shadow-2xl shadow-amber-900/40 scale-[1.02] z-10 matrix-glow"
                     : "bg-slate-900/40 border-white/5 hover:border-amber-500/50 hover:bg-slate-900/80 hover:-translate-y-1 hover:shadow-2xl hover:shadow-amber-500/10",
-                isLocked && "opacity-40 cursor-not-allowed grayscale bg-slate-950"
+                isLocked && "bg-slate-950/80 border-amber-900/40 hover:border-amber-500/30 group-hover:bg-slate-900"
             )}
         >
             <div className="flex items-start justify-between gap-4">
