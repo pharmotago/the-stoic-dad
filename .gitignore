@@ -43,3 +43,7 @@ ts-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# worktrees
+.worktrees/
+worktrees/
