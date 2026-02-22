@@ -46,20 +46,42 @@ export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (code.trim().toUpperCase() === 'STOIC2026') {
-            onUnlock();
-            onClose();
-            play('success');
-            triggerHaptic(HapticPatterns.success);
-            showToast('Premium Access Unlocked! Welcome to the inner circle.', 'success');
-        } else {
-            setError(true);
-            play('lock');
-            triggerHaptic(HapticPatterns.error);
-            showToast('Invalid access code', 'error');
-            setTimeout(() => setError(false), 2000);
+        if (!code.trim()) return;
+
+        try {
+            setIsProcessing(true);
+            play('click');
+            triggerHaptic(HapticPatterns.light);
+
+            const res = await fetch('/api/verify-key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: code.trim() }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                onUnlock();
+                onClose();
+                play('success');
+                triggerHaptic(HapticPatterns.success);
+                showToast('Premium Access Unlocked! Welcome to the inner circle.', 'success');
+                analytics.track('license_key_redeemed', { key: code.trim() });
+            } else {
+                setError(true);
+                play('lock');
+                triggerHaptic(HapticPatterns.error);
+                showToast(data.error || 'Invalid or used license key', 'error');
+                setTimeout(() => setError(false), 2000);
+            }
+        } catch (err) {
+            console.error('Redemption error:', err);
+            showToast('Verification failed. Please try again.', 'error');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -108,26 +130,30 @@ export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
                         </div>
                     </div>
 
-                    {/* Access Code Form */}
+                    {/* License Key Form */}
                     <form onSubmit={handleSubmit} className="mb-6">
                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                            Enter Access Code
+                            Enter Premium License Key
                         </label>
                         <div className="flex gap-2">
                             <input
                                 type="text"
                                 value={code}
                                 onChange={(e) => setCode(e.target.value)}
-                                placeholder="STOIC..."
+                                placeholder="STOIC-XXXX-XXXX"
                                 className={`flex-1 bg-slate-800 border ${error ? 'border-red-500' : 'border-slate-700'} rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all font-mono tracking-widest`}
                             />
                             <button
                                 type="submit"
-                                className="bg-slate-800 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl border border-slate-700 transition-colors"
+                                disabled={isProcessing}
+                                className="bg-slate-800 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl border border-slate-700 transition-colors disabled:opacity-50"
                             >
-                                Unlock
+                                {isProcessing ? '...' : 'Redeem'}
                             </button>
                         </div>
+                        <p className="mt-2 text-[10px] text-slate-500 italic">
+                            Key sent via email after purchase
+                        </p>
                     </form>
 
                     {/* Divider */}
