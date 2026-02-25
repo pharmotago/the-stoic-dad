@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Module } from '@/lib/schemas';
-import courseData from '@/data';
+import { staticModules, getAllModules } from '@/data';
 
 export interface JournalEntry {
     content: string;
@@ -32,6 +32,7 @@ interface CourseState {
     theme: 'dark' | 'paper';
     focusMode: boolean;
     isPremium: boolean;
+    modules: Module[];
 
     // Actions
     setLoaded: () => void;
@@ -47,6 +48,7 @@ interface CourseState {
     setTheme: (theme: 'dark' | 'paper') => void;
     setFocusMode: (active: boolean) => void;
     setPremium: (active: boolean) => void;
+    fetchModules: () => Promise<void>;
     initializeStore: () => void;
     saveProgress: () => void; // Deprecated
 }
@@ -69,11 +71,12 @@ export const useCourseStore = create<CourseState>()(
             theme: 'dark',
             focusMode: false,
             isPremium: false,
+            modules: staticModules,
 
             setLoaded: () => set({ isLoaded: true }),
 
             unlockNext: () => set((state) => {
-                const maxIndex = courseData.length - 1;
+                const maxIndex = state.modules.length - 1;
                 const nextIndex = state.unlockedIndex + 1;
                 return { unlockedIndex: Math.min(nextIndex, maxIndex) };
             }),
@@ -166,7 +169,14 @@ export const useCourseStore = create<CourseState>()(
                 if (lastCheckIn && lastCheckIn !== today && lastCheckIn !== yesterday) {
                     set({ currentStreak: 0 });
                 }
-                set({ isLoaded: true });
+                get().fetchModules().then(() => {
+                    set({ isLoaded: true });
+                });
+            },
+
+            fetchModules: async () => {
+                const modules = await getAllModules();
+                set({ modules });
             },
 
             saveProgress: () => { },

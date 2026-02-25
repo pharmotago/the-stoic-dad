@@ -29,8 +29,9 @@ import { day27 } from "./modules/day27";
 import { day28 } from "./modules/day28";
 import { day29 } from "./modules/day29";
 import { day30 } from "./modules/day30";
+import { supabase } from "@/lib/supabase";
 
-const courseData: Module[] = [
+export const staticModules: Module[] = [
     day1,
     day2,
     day3,
@@ -63,4 +64,39 @@ const courseData: Module[] = [
     day30
 ];
 
-export default courseData;
+export async function getAllModules(): Promise<Module[]> {
+    try {
+        const { data: dynamicModules, error } = await supabase
+            .from('dynamic_modules')
+            .select('*')
+            .order('module_id', { ascending: true });
+
+        if (error) {
+            console.warn("Supabase dynamic_modules fetch error:", error.message);
+            return staticModules;
+        }
+
+        if (!dynamicModules || dynamicModules.length === 0) {
+            return staticModules;
+        }
+
+        const mappedDynamic: Module[] = dynamicModules.map((dm: any) => ({
+            id: dm.module_id,
+            title: dm.title,
+            summary: dm.summary,
+            isLocked: dm.is_locked ?? false,
+            content: dm.content as any,
+        }));
+
+        // Filter out overlaps just in case
+        const existingIds = new Set(staticModules.map(m => m.id));
+        const uniqueDynamic = mappedDynamic.filter(dm => !existingIds.has(dm.id));
+
+        return [...staticModules, ...uniqueDynamic];
+    } catch (e) {
+        console.error("Critical error fetching dynamic modules:", e);
+        return staticModules;
+    }
+}
+
+export default staticModules;

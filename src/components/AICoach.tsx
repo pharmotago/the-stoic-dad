@@ -1,29 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, User, Bot } from 'lucide-react';
+import { MessageSquare, X, Send, Bot } from 'lucide-react';
 import { analytics } from '@/lib/analytics';
-
-const MARCUS_RESPONSES: Record<string, string[]> = {
-    anger: [
-        "How much more grievous are the consequences of anger than the causes of it. — Marcus Aurelius",
-        "Keep this thought handy when you feel a fit of rage coming on: it isn't manly to be enraged. Rather, gentleness and civility are more human, and therefore manlier. — Marcus Aurelius",
-        "Anger, if not restrained, is frequently more hurtful to us than the injury that provokes it. — Seneca"
-    ],
-    anxiety: [
-        "Today I escaped anxiety. Or no, I discarded it, because it was within me, in my own perceptions — not outside. — Marcus Aurelius",
-        "We suffer more often in imagination than in reality. — Seneca",
-        "Man is not worried by real problems so much as by his imagined anxieties about real problems. — Epictetus"
-    ],
-    lazy: [
-        "At dawn, when you have trouble getting out of bed, tell yourself: 'I have to go to work — as a human being... Is this what I was created for? To huddle under the blankets and stay warm?' — Marcus Aurelius",
-        "You are not your body and hair style, but your capacity for choosing well. If your choices are beautiful, so shall you be. — Epictetus"
-    ],
-    default: [
-        "The obstacle is the way.",
-        "Focus on what you can control.",
-        "Amor Fati - love your fate.",
-        "This too shall pass."
-    ]
-};
 
 type Message = {
     id: string;
@@ -49,32 +26,54 @@ export function AICoach() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    const handleSend = (e?: React.FormEvent) => {
+    const [isTyping, setIsTyping] = useState(false);
+
+    const handleSend = async (e?: React.FormEvent) => {
         e?.preventDefault();
-        if (!input.trim()) return;
+        if (!input.trim() || isTyping) return;
 
         const userMsg: Message = { id: Date.now().toString(), text: input, sender: 'user' };
         setMessages(prev => [...prev, userMsg]);
         setInput('');
+        setIsTyping(true);
         analytics.track('ai_message_sent', { length: input.length });
 
-        // Heuristic AI logic
-        setTimeout(() => {
-            const lowerInput = input.toLowerCase();
-            let responses = MARCUS_RESPONSES.default;
+        try {
+            // Map messages for the protocol
+            const history = messages
+                .filter(m => m.id !== '1') // Skip greeting
+                .map(m => ({
+                    role: m.sender === 'user' ? 'user' : 'assistant',
+                    content: m.text
+                }));
 
-            if (lowerInput.includes('ang') || lowerInput.includes('mad') || lowerInput.includes('rage')) {
-                responses = MARCUS_RESPONSES.anger;
-            } else if (lowerInput.includes('anx') || lowerInput.includes('worr') || lowerInput.includes('fear')) {
-                responses = MARCUS_RESPONSES.anxiety;
-            } else if (lowerInput.includes('lazy') || lowerInput.includes('tired') || lowerInput.includes('bed')) {
-                responses = MARCUS_RESPONSES.lazy;
+            const res = await fetch('/api/ai/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: [...history, { role: 'user', content: input }]
+                }),
+            });
+
+            const data = await res.json();
+
+            if (data.text) {
+                const botMsg: Message = { id: Date.now().toString(), text: data.text, sender: 'bot' };
+                setMessages(prev => [...prev, botMsg]);
+            } else {
+                throw new Error('No response from Marcus');
             }
-
-            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-            const botMsg: Message = { id: (Date.now() + 1).toString(), text: randomResponse, sender: 'bot' };
-            setMessages(prev => [...prev, botMsg]);
-        }, 1000);
+        } catch (err) {
+            console.error('Chat error:', err);
+            const errorMsg: Message = {
+                id: Date.now().toString(),
+                text: "My connection to the Stoic frequency is unstable. Remember: focus on what you can control. (Service momentarily offline)",
+                sender: 'bot'
+            };
+            setMessages(prev => [...prev, errorMsg]);
+        } finally {
+            setIsTyping(false);
+        }
     };
 
     return (
@@ -83,6 +82,7 @@ export function AICoach() {
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
+                    title="Open AI Coach"
                     className="fixed bottom-6 right-6 z-40 p-4 bg-slate-900 border border-amber-500/50 rounded-full shadow-2xl shadow-amber-500/20 hover:scale-110 transition-transform group"
                 >
                     <div className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full animate-pulse" />
@@ -109,6 +109,7 @@ export function AICoach() {
                         </div>
                         <button
                             onClick={() => setIsOpen(false)}
+                            title="Close"
                             className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white"
                         >
                             <X className="w-5 h-5" />
@@ -124,14 +125,23 @@ export function AICoach() {
                             >
                                 <div
                                     className={`max-w-[80%] p-3 rounded-2xl text-sm ${msg.sender === 'user'
-                                            ? 'bg-amber-600/90 text-white rounded-tr-none'
-                                            : 'bg-slate-800 text-slate-200 rounded-tl-none border border-slate-700'
+                                        ? 'bg-amber-600/90 text-white rounded-tr-none'
+                                        : 'bg-slate-800 text-slate-200 rounded-tl-none border border-slate-700'
                                         }`}
                                 >
                                     {msg.text}
                                 </div>
                             </div>
                         ))}
+                        {isTyping && (
+                            <div className="flex justify-start">
+                                <div className="bg-slate-800 text-slate-400 p-3 rounded-2xl rounded-tl-none border border-slate-700 flex gap-1 items-center">
+                                    <div className="w-1 h-1 bg-slate-500 rounded-full animate-bounce" />
+                                    <div className="w-1 h-1 bg-slate-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+                                    <div className="w-1 h-1 bg-slate-500 rounded-full animate-bounce [animation-delay:0.4s]" />
+                                </div>
+                            </div>
+                        )}
                         <div ref={messagesEndRef} />
                     </div>
 
@@ -147,7 +157,8 @@ export function AICoach() {
                             />
                             <button
                                 type="submit"
-                                disabled={!input.trim()}
+                                disabled={!input.trim() || isTyping}
+                                title="Send message"
                                 className="p-2 bg-amber-600 rounded-xl text-white disabled:opacity-50 hover:bg-amber-500 transition-colors"
                             >
                                 <Send className="w-5 h-5" />

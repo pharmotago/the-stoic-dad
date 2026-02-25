@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import courseData from '@/data';
+// import courseData from '@/data'; // Removed in favor of store modules
 import { Header } from '@/components/Header';
 import { DynamicHeader } from '@/components/DynamicHeader';
 import { ModuleCard } from '@/components/ModuleCard';
@@ -69,7 +69,8 @@ export default function Home() {
         resetProgress,
         isLoaded,
         isPremium,
-        setPremium
+        setPremium,
+        modules
     } = useCourseStore();
 
     const { isPremium: isSharedPremium } = useLicensing();
@@ -199,7 +200,7 @@ export default function Home() {
         }
     }, !activeModule || !modals.quiz);
 
-    const handleExportJournal = () => { exportJournalData(courseData.length); };
+    const handleExportJournal = () => { exportJournalData(modules.length); };
     const handleResetProgress = () => {
         resetProgress();
         showToast('All progress reset', 'info');
@@ -207,7 +208,7 @@ export default function Home() {
 
     if (!isLoaded) return <LoadingSkeleton />;
 
-    const progress = (completedModules.length / courseData.length) * 100;
+    const progress = (completedModules.length / modules.length) * 100;
 
 
     return (
@@ -222,7 +223,7 @@ export default function Home() {
                 completionPercentage={progress}
                 currentStreak={currentStreak}
                 completedCount={completedModules.length}
-                totalCount={courseData.length}
+                totalCount={modules.length}
                 onMobileMenuToggle={() => toggleModal('mobileMenu', true)}
             />
 
@@ -278,7 +279,7 @@ export default function Home() {
 
                             <div className="flex flex-col sm:flex-row items-center gap-6 justify-center w-full max-w-lg">
                                 <button
-                                    onClick={() => handleModuleClick(courseData[0])}
+                                    onClick={() => handleModuleClick(modules[0])}
                                     className="w-full px-12 py-5 bg-white text-black font-black uppercase tracking-[0.3em] rounded-none hover:bg-amber-500 transition-all hover:scale-105 active:scale-95 shadow-2xl"
                                 >
                                     Begin Trial
@@ -337,7 +338,7 @@ export default function Home() {
                                 </div>
 
                                 <div className="grid gap-4">
-                                    {courseData.map((module) => {
+                                    {modules.map((module) => {
                                         // "Locked" logic: 
                                         // If !Premium AND id > 1 -> Premium Locked (shows padlock, opens modal)
                                         // If Premium AND id > highestUnlocked -> Progression Locked (shows padlock, no click or standard logic)
@@ -367,7 +368,7 @@ export default function Home() {
                                     <ProgressRing progress={progress} size={140} />
                                     <div className="mt-4 text-center">
                                         <div className="text-sm text-slate-400 mb-1">
-                                            {completedModules.length} of {courseData.length} modules
+                                            {completedModules.length} of {modules.length} modules
                                         </div>
                                     </div>
                                 </div>

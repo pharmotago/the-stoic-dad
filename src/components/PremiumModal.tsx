@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, Star, Check, X, CreditCard, ArrowRight } from 'lucide-react';
+import { Lock, Check, X, CreditCard, ArrowRight } from 'lucide-react';
 import { useToast } from './Toast';
 import { useSound } from '@/lib/sound';
 import { triggerHaptic, HapticPatterns } from '@/lib/haptics';
@@ -36,7 +36,8 @@ export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
             }
         } catch (err: any) {
             console.error('Stripe error:', err);
-            showToast('Checkout failed. Please try again.', 'error');
+            const errorMessage = err.message || 'Checkout failed. Please try again.';
+            showToast(errorMessage, 'error');
             play('error');
             triggerHaptic(HapticPatterns.error);
         } finally {

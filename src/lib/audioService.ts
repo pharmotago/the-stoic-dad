@@ -1,9 +1,9 @@
-
 export type VoicePersona = 'mentor' | 'system';
 
 class AudioService {
     private synth: SpeechSynthesis | null = null;
     private currentUtterance: SpeechSynthesisUtterance | null = null;
+    private currentAudio: HTMLAudioElement | null = null;
 
     constructor() {
         if (typeof window !== 'undefined') {
@@ -23,7 +23,6 @@ class AudioService {
         if (!this.synth) return null;
         const voices = this.synth.getVoices();
 
-        // Prioritize natural sounding male voices for the 'Mentor' persona
         const priorities = [
             'Google US English',
             'Microsoft Guy',
@@ -39,22 +38,52 @@ class AudioService {
         return voices[0] || null;
     }
 
-    speak(text: string, persona: VoicePersona = 'mentor', onBoundary?: (index: number) => void, onEnd?: () => void) {
+    /**
+     * Attempts to use the Premium API TTS
+     * Falls back to Browser Synthesis if API fails
+     */
+    async speak(text: string, persona: VoicePersona = 'mentor', onBoundary?: (index: number) => void, onEnd?: () => void) {
+        this.stop();
+        const cleanedText = this.cleanText(text);
+
+        try {
+            const voice = persona === 'mentor' ? 'en-US-Neural2-D' : 'en-US-Neural2-F';
+            const response = await fetch('/api/tts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: cleanedText, voice }),
+            });
+
+            if (!response.ok) throw new Error('Premium TTS API failed');
+
+            const data = await response.json();
+            if (data.audioContent) {
+                const audioBlob = this.base64ToBlob(data.audioContent, 'audio/mp3');
+                const audioUrl = URL.createObjectURL(audioBlob);
+
+                this.currentAudio = new Audio(audioUrl);
+                this.currentAudio.onended = () => {
+                    if (onEnd) onEnd();
+                    URL.revokeObjectURL(audioUrl);
+                };
+                this.currentAudio.play();
+                return;
+            }
+        } catch (err) {
+            console.warn('Falling back to Browser TTS:', err);
+            this.speakWithBrowser(cleanedText, onBoundary, onEnd);
+        }
+    }
+
+    private speakWithBrowser(text: string, onBoundary?: (index: number) => void, onEnd?: () => void) {
         if (!this.synth) return;
 
-        this.stop();
-
-        const cleanedText = this.cleanText(text);
-        this.currentUtterance = new SpeechSynthesisUtterance(cleanedText);
-
+        this.currentUtterance = new SpeechSynthesisUtterance(text);
         const bestVoice = this.getBestVoice();
-        if (bestVoice) {
-            this.currentUtterance.voice = bestVoice;
-        }
+        if (bestVoice) this.currentUtterance.voice = bestVoice;
 
-        // Stoic voice configuration
-        this.currentUtterance.rate = 0.85; // Slightly slower for gravity
-        this.currentUtterance.pitch = 0.9;  // Slightly deeper
+        this.currentUtterance.rate = 0.85;
+        this.currentUtterance.pitch = 0.9;
 
         this.currentUtterance.onboundary = (event) => {
             if (onBoundary) onBoundary(event.charIndex);
@@ -68,9 +97,23 @@ class AudioService {
         this.synth.speak(this.currentUtterance);
     }
 
+    private base64ToBlob(base64: string, type: string) {
+        const binStr = atob(base64);
+        const len = binStr.length;
+        const arr = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            arr[i] = binStr.charCodeAt(i);
+        }
+        return new Blob([arr], { type });
+    }
+
     stop() {
         if (this.synth) {
             this.synth.cancel();
+        }
+        if (this.currentAudio) {
+            this.currentAudio.pause();
+            this.currentAudio = null;
         }
         this.currentUtterance = null;
     }

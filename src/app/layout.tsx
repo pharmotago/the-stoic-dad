@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
+
 import { cn } from "@/lib/utils";
 import { StoicChat } from "@/components/StoicChat";
 
@@ -88,6 +88,7 @@ export default function RootLayout({
     return (
         <html lang="en" className="scroll-smooth">
             <body className={cn(inter.className, "antialiased font-sans")}>
+                <link rel="stylesheet" href="/styles/globals.css" />
                 <GoogleAdSense />
                 <script
                     type="application/ld+json"
