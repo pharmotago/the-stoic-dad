@@ -34,7 +34,7 @@ const QuickActions = dynamic(() => import('@/components/QuickActions').then(mod 
 const LoadingSkeleton = dynamic(() => import('@/components/LoadingSkeleton').then(mod => mod.LoadingSkeleton));
 const MobileMenu = dynamic(() => import('@/components/MobileMenu').then(mod => mod.MobileMenu), { ssr: false });
 
-import { AdSense, useLicensing, ExitIntentModal, CrossPromo } from '@ecosystem/shared-ui';
+import { AdSense, useLicensing, ExitIntentModal, CrossPromo } from '@/ecosystem-shared';
 import { BrainCircuit } from 'lucide-react';
 
 // Code Splitting for heavy modals

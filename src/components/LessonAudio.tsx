@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useCourseStore } from "@/store/useCourseStore";
 import { audioService, VoicePersona } from "@/lib/audioService";
-import { GlassCard, NeuralPulse, SignalPlayer } from "@ecosystem/shared-ui";
+import { GlassCard, NeuralPulse, SignalPlayer } from "@/ecosystem-shared";
 import { SignalInsights } from "./SignalInsights";
 
 interface LessonAudioProps {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Clock, Star } from 'lucide-react';
 import { useCourseStore } from '@/store/useCourseStore';
 import { calculateLevel } from '@/lib/gamification';
-import { useLicensing } from '@ecosystem/shared-ui';
+import { useLicensing } from '@/ecosystem-shared';
 
 export function StickyPromo() {
     const { totalXp } = useCourseStore();

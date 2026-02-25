@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { BrainCircuit, Cpu, Sparkles, MessageSquare, Zap } from 'lucide-react';
-import { GlassCard, NeuralPulse } from '@ecosystem/shared-ui';
+import { GlassCard, NeuralPulse } from '@/ecosystem-shared';
 
 interface Segment {
     id: number;
