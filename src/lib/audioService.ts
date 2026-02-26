@@ -12,17 +12,18 @@ class AudioService {
     }
 
     private cleanText(text: string): string {
-        const cleaned = text
+        return text
             .replace(/[*#_~`>]/g, '') // Strip markdown characters
             .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1') // Strip links but keep text
             .replace(/\n+/g, ' ') // Replace newlines with spaces for smoother flow
             // Simplified emoji range for better compatibility
             .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\u2600-\u26FF|\u2700-\u27BF/g, '')
             .trim();
+    }
 
-        // Convert to SSML for Stoic Pacing
+    private applySSML(text: string): string {
         // Adds deliberate pauses after sentences for a more contemplative tone
-        return `<speak>${cleaned.replace(/([.!?])\s+/g, '$1 <break time="800ms"/> ')}</speak>`;
+        return `<speak>${text.replace(/([.!?])\s+/g, '$1 <break time="800ms"/> ')}</speak>`;
     }
 
     private getBestVoice(): SpeechSynthesisVoice | null {
@@ -51,13 +52,14 @@ class AudioService {
     async speak(text: string, persona: VoicePersona = 'mentor', onEnd?: () => void) {
         this.stop();
         const cleanedText = this.cleanText(text);
+        const ssmlText = this.applySSML(cleanedText);
 
         try {
-            const voice = persona === 'mentor' ? 'en-US-Journey-D' : 'en-US-Journey-F';
+            const voice = persona === 'mentor' ? 'en-US-Neural2-D' : 'en-US-Neural2-F';
             const response = await fetch('/api/tts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: cleanedText, voice }),
+                body: JSON.stringify({ text: ssmlText, voice }),
             });
 
             if (!response.ok) throw new Error('Premium TTS API failed');
