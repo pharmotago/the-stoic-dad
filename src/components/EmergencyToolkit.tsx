@@ -73,6 +73,7 @@ export function EmergencyToolkit({ isOpen, onClose }: EmergencyToolkitProps) {
                     <button
                         onClick={onClose}
                         className="p-2 hover:bg-slate-800 rounded-full transition-colors text-slate-400 hover:text-white"
+                        title="Close"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -95,7 +96,7 @@ export function EmergencyToolkit({ isOpen, onClose }: EmergencyToolkitProps) {
                                     >
                                         <Icon className={cn("w-8 h-8 mb-3", `text-${protocol.color}-500`)} />
                                         <h4 className="font-bold text-white mb-2">{protocol.title}</h4>
-                                        <p className="text-sm text-slate-400 italic">"{protocol.prompt}"</p>
+                                        <p className="text-sm text-slate-400 italic">&ldquo;{protocol.prompt}&rdquo;</p>
                                     </button>
                                 );
                             })}
@@ -125,7 +126,7 @@ export function EmergencyToolkit({ isOpen, onClose }: EmergencyToolkitProps) {
                                     className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg cursor-pointer hover:bg-amber-500/20 transition-colors group relative"
                                     onClick={() => handleCopy(selectedProtocol.prompt)}
                                 >
-                                    <p className="text-lg text-amber-100 italic pr-8">"{selectedProtocol.prompt}"</p>
+                                    <p className="text-lg text-amber-100 italic pr-8">&ldquo;{selectedProtocol.prompt}&rdquo;</p>
                                     <div className="absolute top-4 right-4 text-amber-500/50 group-hover:text-amber-500 transition-colors text-xs font-mono">
                                         {copied ? 'COPIED' : 'COPY'}
                                     </div>

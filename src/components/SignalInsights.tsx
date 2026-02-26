@@ -52,7 +52,7 @@ export const SignalInsights: React.FC<SignalInsightsProps> = ({ segments, accent
                                     <div className="flex items-start gap-2">
                                         <MessageSquare size={14} className={`mt-1 text-${accentColor}-400 opacity-60`} />
                                         <p className="text-sm font-medium text-white/90 leading-relaxed italic">
-                                            "{segment.audio_text}"
+                                            &ldquo;{segment.audio_text}&rdquo;
                                         </p>
                                     </div>
 

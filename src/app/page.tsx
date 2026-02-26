@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-// import courseData from '@/data'; // Removed in favor of store modules
-import { Header } from '@/components/Header';
 import { DynamicHeader } from '@/components/DynamicHeader';
 import { ModuleCard } from '@/components/ModuleCard';
 import { LessonView } from '@/components/LessonView';
@@ -12,18 +10,13 @@ import { XP_CONSTANTS, calculateLevel } from '@/lib/gamification';
 import dynamic from 'next/dynamic';
 // Performance: Dynamic Imports for heavy components and modals
 const EmergencyToolkit = dynamic(() => import('@/components/EmergencyToolkit').then(mod => mod.EmergencyToolkit), { ssr: false });
-const StatsPanel = dynamic(() => import('@/components/StatsPanel').then(mod => mod.StatsPanel), { ssr: false });
 const WelcomeModal = dynamic(() => import('@/components/WelcomeModal').then(mod => mod.WelcomeModal), { ssr: false });
 const AchievementBadges = dynamic(() => import('@/components/AchievementBadges').then(mod => mod.AchievementBadges));
 const SettingsPanel = dynamic(() => import('@/components/SettingsPanel').then(mod => mod.SettingsPanel), { ssr: false });
-const AICoach = dynamic(() => import('@/components/AICoach').then(mod => mod.AICoach), { ssr: false });
-const LeadGenModal = dynamic(() => import('@/components/LeadGenModal').then(mod => mod.LeadGenModal), { ssr: false });
 const ModuleSearch = dynamic(() => import('@/components/ModuleSearch').then(mod => mod.ModuleSearch), { ssr: false });
-const TutorialOverlay = dynamic(() => import('@/components/TutorialOverlay').then(mod => mod.TutorialOverlay), { ssr: false });
 const CommunityModal = dynamic(() => import('@/components/CommunityModal').then(mod => mod.CommunityModal), { ssr: false });
 const ShareModal = dynamic(() => import('@/components/ShareModal').then(mod => mod.ShareModal), { ssr: false });
 const PremiumModal = dynamic(() => import('@/components/PremiumModal').then(mod => mod.PremiumModal), { ssr: false });
-const Hero3DPreview = dynamic(() => import('@/components/Hero3DPreview').then(mod => mod.Hero3DPreview));
 const PricingTable = dynamic(() => import('@/components/PricingTable').then(mod => mod.PricingTable));
 const FAQSection = dynamic(() => import('@/components/FAQSection').then(mod => mod.FAQSection));
 const StickyPromo = dynamic(() => import('@/components/StickyPromo').then(mod => mod.StickyPromo), { ssr: false });
@@ -46,11 +39,9 @@ const JournalEntry = dynamic(() => import('@/components/JournalEntry').then(mod 
 });
 import { useToast } from '@/components/Toast';
 import { Module } from '@/lib/schemas';
-import { Trophy, Shield, BookText, BarChart3 } from 'lucide-react';
+import { Shield, BookText } from 'lucide-react';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { exportJournalData, resetAllProgress } from '@/lib/export';
-
-import { useHistory } from '@/hooks/useHistory';
+import { exportJournalData } from '@/lib/export';
 
 import { useCourseStore } from '@/store/useCourseStore';
 
@@ -73,7 +64,7 @@ export default function Home() {
         modules
     } = useCourseStore();
 
-    const { isPremium: isSharedPremium } = useLicensing();
+    const { isPremium: isSharedPremium, unlockPremium: unlockShared } = useLicensing();
 
     const [showLanguagePromo, setShowLanguagePromo] = useState(false);
 
@@ -107,9 +98,9 @@ export default function Home() {
         premium: false
     });
 
-    const toggleModal = (key: keyof typeof modals, value: boolean) => {
+    const toggleModal = useCallback((key: keyof typeof modals, value: boolean) => {
         setModals(prev => ({ ...prev, [key]: value }));
-    };
+    }, []);
 
     // Toast notifications
     const { showToast, ToastComponent } = useToast();
@@ -128,7 +119,7 @@ export default function Home() {
         } else if (!hasSeenTutorial) {
             toggleModal('tutorial', true);
         }
-    }, [isLoaded]);
+    }, [isLoaded, setPremium, toggleModal]);
 
     const handleWelcomeClose = () => {
         toggleModal('welcome', false);
@@ -138,6 +129,7 @@ export default function Home() {
 
     const handleUnlockPremium = () => {
         setPremium(true);
+        unlockShared(); // Sync with ecosystem
         localStorage.setItem('stoic-dad-premium', 'true');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -488,11 +480,11 @@ function Testimonial({ quote, author }: { quote: string, author: string }) {
                     ))}
                 </div>
                 <p className="text-white/60 font-light italic text-lg leading-relaxed mb-8 group-hover:text-white transition-colors">
-                    "{quote}"
+                    &ldquo;{quote}&rdquo;
                 </p>
             </div>
             <p className="text-[10px] font-black text-amber-500/60 uppercase tracking-[0.3em]">
-                // {author}
+                {author}
             </p>
         </div>
     );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Clock, Star } from 'lucide-react';
+import { X, Clock } from 'lucide-react';
 import { useCourseStore } from '@/store/useCourseStore';
 import { calculateLevel } from '@/lib/gamification';
 import { useLicensing } from '@/ecosystem-shared';
@@ -71,12 +71,14 @@ export function StickyPromo() {
                     <button
                         onClick={() => setIsVisible(false)}
                         className="p-1 hover:bg-black/10 rounded-full transition-colors md:hidden"
+                        title="Dismiss"
                     >
                         <X className="w-5 h-5 text-slate-900" />
                     </button>
                     <button
                         onClick={() => setIsVisible(false)}
                         className="absolute top-2 right-2 text-slate-900/50 hover:text-slate-900 hidden md:block"
+                        title="Close"
                     >
                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12" /></svg>
                     </button>
