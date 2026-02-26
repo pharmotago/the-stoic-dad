@@ -4,7 +4,7 @@
  */
 
 type AnalyticsEvent = {
-    app: 'the-signal' | 'pharmaclinix' | 'stoic-dad' | 'language-coach' | 'worry-sorter';
+    app: 'the-signal' | 'pharmaclinix' | 'stoic-dad' | 'language-coach';
     event: string;
     params?: Record<string, any>;
 };
