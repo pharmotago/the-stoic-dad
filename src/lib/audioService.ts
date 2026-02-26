@@ -12,12 +12,17 @@ class AudioService {
     }
 
     private cleanText(text: string): string {
-        return text
+        const cleaned = text
             .replace(/[*#_~`>]/g, '') // Strip markdown characters
             .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1') // Strip links but keep text
             .replace(/\n+/g, ' ') // Replace newlines with spaces for smoother flow
-            .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F3FB}-\u{1F3FF}\u{1F400}-\u{1F4FF}\u{1F500}-\u{1F5FF}\u{1F900}-\u{1F9FF}\u{1F1E0}-\u{1F1FF}]/gu, '') // Strip emojis
+            // Simplified emoji range for better compatibility
+            .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\u2600-\u26FF|\u2700-\u27BF/g, '')
             .trim();
+
+        // Convert to SSML for Stoic Pacing
+        // Adds deliberate pauses after sentences for a more contemplative tone
+        return `<speak>${cleaned.replace(/([.!?])\s+/g, '$1 <break time="800ms"/> ')}</speak>`;
     }
 
     private getBestVoice(): SpeechSynthesisVoice | null {
@@ -43,12 +48,12 @@ class AudioService {
      * Attempts to use the Premium API TTS
      * Falls back to Browser Synthesis if API fails
      */
-    async speak(text: string, persona: VoicePersona = 'mentor', onBoundary?: (index: number) => void, onEnd?: () => void) {
+    async speak(text: string, persona: VoicePersona = 'mentor', onEnd?: () => void) {
         this.stop();
         const cleanedText = this.cleanText(text);
 
         try {
-            const voice = persona === 'mentor' ? 'en-US-Neural2-D' : 'en-US-Neural2-F';
+            const voice = persona === 'mentor' ? 'en-US-Journey-D' : 'en-US-Journey-F';
             const response = await fetch('/api/tts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -72,11 +77,11 @@ class AudioService {
             }
         } catch (err) {
             console.warn('Falling back to Browser TTS:', err);
-            this.speakWithBrowser(cleanedText, onBoundary, onEnd);
+            this.speakWithBrowser(cleanedText, onEnd);
         }
     }
 
-    private speakWithBrowser(text: string, onBoundary?: (index: number) => void, onEnd?: () => void) {
+    private speakWithBrowser(text: string, onEnd?: () => void) {
         if (!this.synth) return;
 
         this.currentUtterance = new SpeechSynthesisUtterance(text);
@@ -85,10 +90,6 @@ class AudioService {
 
         this.currentUtterance.rate = 0.85;
         this.currentUtterance.pitch = 0.9;
-
-        this.currentUtterance.onboundary = (event) => {
-            if (onBoundary) onBoundary(event.charIndex);
-        };
 
         this.currentUtterance.onend = () => {
             this.currentUtterance = null;

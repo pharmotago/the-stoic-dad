@@ -23,15 +23,14 @@ export async function POST(req: Request) {
         const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
 
         // Stoic Tone Optimization
-        // We use SSML to add deliberate pauses at commas and periods if needed, 
-        // but simple audioConfig usually suffices for rate/pitch.
+        // Using SSML allows for precise control over pauses and inflection.
         const response = await fetch(url, {
             method: 'POST',
             body: JSON.stringify({
-                input: { text },
+                input: { ssml: text },
                 voice: {
                     languageCode: 'en-US',
-                    name: voice, // Journey voices usually look like en-US-Journey-F/D
+                    name: voice, // Optimized for Journey voices (e.g., en-US-Journey-D)
                 },
                 audioConfig: {
                     audioEncoding: 'MP3',
