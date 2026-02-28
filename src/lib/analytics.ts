@@ -10,6 +10,24 @@ class AnalyticsEngine {
 
     init() {
         if (typeof window === 'undefined') return;
+
+        // Capture UTM parameters for marketing attribution
+        const urlParams = new URLSearchParams(window.location.search);
+        const utmParams: Record<string, string> = {};
+        ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid'].forEach(param => {
+            const value = urlParams.get(param);
+            if (value) utmParams[param] = value;
+        });
+
+        if (Object.keys(utmParams).length > 0) {
+            localStorage.setItem('stoic_marketing_context', JSON.stringify({
+                ...utmParams,
+                first_touch: new Date().toISOString(),
+                referrer: document.referrer
+            }));
+            this.track('marketing_context_captured', utmParams);
+        }
+
         this.isInitialized = true;
         this.flush();
     }
@@ -51,3 +69,4 @@ class AnalyticsEngine {
 }
 
 export const analytics = new AnalyticsEngine();
+

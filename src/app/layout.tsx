@@ -74,9 +74,6 @@ const jsonLd = {
 };
 
 import { SoundProvider } from "@/lib/sound";
-
-
-
 import { GoogleAdSense } from "@/components/GoogleAdSense";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -95,6 +92,9 @@ export default function RootLayout({
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
                 />
                 <SoundProvider>
+                    {/* Marketing Tracking Placeholders */}
+                    {/* Meta Pixel Code Placeholder */}
+                    {/* Google Tag Manager Placeholder */}
                     {children}
                     <StoicChat />
                 </SoundProvider>
@@ -103,3 +103,4 @@ export default function RootLayout({
         </html>
     );
 }
+
