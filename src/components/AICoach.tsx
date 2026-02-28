@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Bot } from 'lucide-react';
+import { MessageSquare, X, Send, Bot, Lock } from 'lucide-react';
 import { analytics } from '@/lib/analytics';
+import { useCourseStore } from '@/store/useCourseStore';
 
 type Message = {
     id: string;
@@ -9,6 +10,10 @@ type Message = {
 };
 
 export function AICoach() {
+    const { isPremium, dailyAiMessageCount, incrementAiMessageCount } = useCourseStore();
+    const AI_LIMIT = 5;
+    const isOverLimit = !isPremium && dailyAiMessageCount >= AI_LIMIT;
+
     const [isOpen, setIsOpen] = useState(false);
     const [input, setInput] = useState('');
     const [messages, setMessages] = useState<Message[]>([
@@ -30,13 +35,14 @@ export function AICoach() {
 
     const handleSend = async (e?: React.FormEvent) => {
         e?.preventDefault();
-        if (!input.trim() || isTyping) return;
+        if (!input.trim() || isTyping || isOverLimit) return;
 
         const userMsg: Message = { id: Date.now().toString(), text: input, sender: 'user' };
         setMessages(prev => [...prev, userMsg]);
         setInput('');
         setIsTyping(true);
-        analytics.track('ai_message_sent', { length: input.length });
+        incrementAiMessageCount();
+        analytics.track('ai_message_sent', { length: input.length, isPremium });
 
         try {
             // Map messages for the protocol
@@ -142,22 +148,35 @@ export function AICoach() {
                                 </div>
                             </div>
                         )}
+                        {isOverLimit && (
+                            <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl text-center space-y-3 mx-2 my-4">
+                                <Lock className="w-5 h-5 text-amber-500 mx-auto" />
+                                <p className="text-xs text-white font-medium">Daily limit of {AI_LIMIT} messages reached.</p>
+                                <button
+                                    onClick={() => (window as any).dispatchEvent(new CustomEvent('open-premium-modal'))}
+                                    className="w-full py-2 bg-amber-500 text-slate-900 text-xs font-bold rounded-lg hover:bg-amber-400 transition-colors"
+                                >
+                                    UPGRADE FOR UNLIMITED CHAT
+                                </button>
+                            </div>
+                        )}
                         <div ref={messagesEndRef} />
                     </div>
 
                     {/* Input */}
-                    <form onSubmit={handleSend} className="p-4 border-t border-slate-800 bg-slate-900 rounded-b-2xl">
+                    <form onSubmit={handleSend} className={`p-4 border-t border-slate-800 bg-slate-900 rounded-b-2xl ${isOverLimit ? 'opacity-50 pointer-events-none' : ''}`}>
                         <div className="flex gap-2">
                             <input
                                 type="text"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
-                                placeholder="Consult the Emperor..."
+                                placeholder={isOverLimit ? "Limit reached..." : "Consult the Emperor..."}
+                                disabled={isOverLimit}
                                 className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors"
                             />
                             <button
                                 type="submit"
-                                disabled={!input.trim() || isTyping}
+                                disabled={!input.trim() || isTyping || isOverLimit}
                                 title="Send message"
                                 className="p-2 bg-amber-600 rounded-xl text-white disabled:opacity-50 hover:bg-amber-500 transition-colors"
                             >

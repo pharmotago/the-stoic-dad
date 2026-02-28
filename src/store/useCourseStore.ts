@@ -32,6 +32,9 @@ interface CourseState {
     theme: 'dark' | 'paper';
     focusMode: boolean;
     isPremium: boolean;
+    subscriptionPlan: 'free' | 'monthly' | 'yearly' | 'lifetime';
+    dailyAiMessageCount: number;
+    lastAiMessageDate: string | null;
     modules: Module[];
 
     // Actions
@@ -47,7 +50,9 @@ interface CourseState {
     markDateComplete: () => void;
     setTheme: (theme: 'dark' | 'paper') => void;
     setFocusMode: (active: boolean) => void;
-    setPremium: (active: boolean) => void;
+    setPremium: (active: boolean, plan?: 'monthly' | 'yearly' | 'lifetime') => void;
+    incrementAiMessageCount: () => void;
+    resetAiMessageCount: () => void;
     fetchModules: () => Promise<void>;
     initializeStore: () => void;
     saveProgress: () => void; // Deprecated
@@ -71,6 +76,9 @@ export const useCourseStore = create<CourseState>()(
             theme: 'dark',
             focusMode: false,
             isPremium: false,
+            subscriptionPlan: 'free',
+            dailyAiMessageCount: 0,
+            lastAiMessageDate: null,
             modules: staticModules,
 
             setLoaded: () => set({ isLoaded: true }),
@@ -81,7 +89,7 @@ export const useCourseStore = create<CourseState>()(
                 return { unlockedIndex: Math.min(nextIndex, maxIndex) };
             }),
 
-            setActiveModule: (module: Module | null) => set({ activeModule: module }),
+            setActiveModule: (_module: Module | null) => set({ activeModule: _module }),
 
             resetProgress: () => set({
                 unlockedIndex: 0,
@@ -94,10 +102,13 @@ export const useCourseStore = create<CourseState>()(
                 lastCheckIn: null,
                 totalXp: 0,
                 completedDates: [],
-                isPremium: false
+                isPremium: false,
+                subscriptionPlan: 'free',
+                dailyAiMessageCount: 0,
+                lastAiMessageDate: null
             }),
 
-            setPanicMode: (active: boolean) => set({ isPanicMode: active }),
+            setPanicMode: (_active: boolean) => set({ isPanicMode: _active }),
 
             saveJournalEntry: (moduleId, content, mood = 'neutral') => set((state) => {
                 const sanitizedContent = content.replace(/<[^>]*>?/gm, '');
@@ -147,7 +158,7 @@ export const useCourseStore = create<CourseState>()(
                 };
             }),
 
-            addXp: (amount) => set((state) => ({ totalXp: state.totalXp + amount })),
+            addXp: (_amount) => set((state) => ({ totalXp: state.totalXp + _amount })),
 
             markDateComplete: () => set((state) => {
                 const today = new Date().toISOString().split('T')[0];
@@ -157,9 +168,23 @@ export const useCourseStore = create<CourseState>()(
 
             setTheme: (theme) => set({ theme }),
 
-            setFocusMode: (active) => set({ focusMode: active }),
+            setFocusMode: (_active) => set({ focusMode: _active }),
 
-            setPremium: (active) => set({ isPremium: active }),
+            setPremium: (active, plan = 'lifetime') => set({
+                isPremium: active,
+                subscriptionPlan: active ? plan : 'free'
+            }),
+
+            incrementAiMessageCount: () => set((state) => {
+                const today = new Date().toDateString();
+                const isNewDay = state.lastAiMessageDate !== today;
+                return {
+                    dailyAiMessageCount: isNewDay ? 1 : state.dailyAiMessageCount + 1,
+                    lastAiMessageDate: today
+                };
+            }),
+
+            resetAiMessageCount: () => set({ dailyAiMessageCount: 0 }),
 
             initializeStore: () => {
                 const today = new Date().toDateString();
@@ -195,7 +220,10 @@ export const useCourseStore = create<CourseState>()(
                 totalXp: state.totalXp,
                 completedDates: state.completedDates,
                 theme: state.theme,
-                isPremium: state.isPremium
+                isPremium: state.isPremium,
+                subscriptionPlan: state.subscriptionPlan,
+                dailyAiMessageCount: state.dailyAiMessageCount,
+                lastAiMessageDate: state.lastAiMessageDate
             }),
             onRehydrateStorage: () => (state) => {
                 state?.initializeStore();

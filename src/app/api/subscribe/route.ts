@@ -20,7 +20,11 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Failed to subscribe' }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true });
+        return NextResponse.json({
+            success: true,
+            coupon: 'STOICDAD20', // Limited time 20% off for new leads
+            message: 'Successfully subscribed to the protocol.'
+        });
     } catch (err) {
         console.error('Server error:', err);
         return NextResponse.json({ error: 'Server error' }, { status: 500 });

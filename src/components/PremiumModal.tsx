@@ -9,13 +9,19 @@ import { analytics } from '@/lib/analytics';
 interface PremiumModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onUnlock: () => void;
+    onUnlock: (giftEmail?: string) => void;
+    initialPlan?: 'monthly' | 'yearly' | 'lifetime';
+    isGift?: boolean;
 }
 
-export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
+export function PremiumModal({ isOpen, onClose, onUnlock, initialPlan = 'lifetime', isGift: initialGiftMode = false }: PremiumModalProps) {
+    const selectedPlan = initialPlan; // Fixed: using prop directly since selection happens in PricingTable
+    const [withOrderBump, setWithOrderBump] = useState(false);
     const [code, setCode] = useState('');
     const [error, setError] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isGift, setIsGift] = useState(initialGiftMode);
+    const [giftEmail, setGiftEmail] = useState('');
     const { showToast } = useToast();
     const { play } = useSound();
 
@@ -25,9 +31,19 @@ export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
             play('click');
             triggerHaptic(HapticPatterns.light);
 
-            const priceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_LIFETIME || 'price_stoic_lifetime';
-            const { sessionId } = await createCheckoutSession(priceId);
-            analytics.track('checkout_initiated', { priceId });
+            const priceMap = {
+                monthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY || 'price_monthly',
+                yearly: process.env.NEXT_PUBLIC_STRIPE_PRICE_YEARLY || 'price_yearly',
+                lifetime: process.env.NEXT_PUBLIC_STRIPE_PRICE_LIFETIME || 'price_lifetime'
+            };
+
+            const priceId = priceMap[selectedPlan];
+            const { sessionId } = await createCheckoutSession(priceId, {
+                addJournal: withOrderBump,
+                mode: selectedPlan === 'lifetime' ? 'payment' : 'subscription',
+                giftEmail: isGift ? giftEmail : undefined,
+            });
+            analytics.track('checkout_initiated', { priceId, plan: selectedPlan, withOrderBump, isGift, giftEmail: isGift ? giftEmail : undefined });
             const stripe = await getStripe();
 
             if (stripe) {
@@ -93,6 +109,7 @@ export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
                 {/* Close Button */}
                 <button
                     onClick={onClose}
+                    title="Close"
                     className="absolute top-4 right-4 p-2 text-slate-500 hover:text-white transition-colors z-10"
                 >
                     <X className="w-5 h-5" />
@@ -164,11 +181,51 @@ export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
                         <div className="h-px bg-slate-800 flex-1" />
                     </div>
 
+                    {/* Gift Option Details */}
+                    {isGift && (
+                        <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl mb-6">
+                            <h4 className="text-sm font-bold text-amber-500 uppercase mb-3 tracking-widest">Recipient Information</h4>
+                            <input
+                                type="email"
+                                value={giftEmail}
+                                onChange={(e) => setGiftEmail(e.target.value)}
+                                placeholder="Recipient's Email Address"
+                                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:border-amber-500 outline-none"
+                                required={isGift}
+                            />
+                            <p className="text-[10px] text-slate-500 mt-2 italic">
+                                We&apos;ll send the protocol activation link to this email immediately after purchase.
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Order Bump */}
+                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6 group cursor-pointer" onClick={() => setWithOrderBump(!withOrderBump)}>
+                        <div className="flex items-start gap-3">
+                            <input
+                                type="checkbox"
+                                checked={withOrderBump}
+                                onChange={() => { }}
+                                title="Add The Stoic Journal"
+                                className="mt-1 accent-amber-500"
+                            />
+                            <div>
+                                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                                    ONE TIME OFFER: The Stoic Journal
+                                    <span className="text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded animate-pulse uppercase">Save 75%</span>
+                                </h4>
+                                <p className="text-xs text-slate-400 mt-1">
+                                    Add the Notion Stoic Journal template for only <span className="text-white font-bold">$7</span> (Regularly $29). Master your morning review.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* CTA */}
                     <div className="space-y-3">
                         <button
                             onClick={handleStripeCheckout}
-                            disabled={isProcessing}
+                            disabled={isProcessing || (isGift && !giftEmail)}
                             className="group w-full flex items-center justify-center gap-3 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isProcessing ? (
@@ -176,7 +233,7 @@ export function PremiumModal({ isOpen, onClose, onUnlock }: PremiumModalProps) {
                             ) : (
                                 <CreditCard className="w-5 h-5" />
                             )}
-                            <span>Get Lifetime Access for $29</span>
+                            <span>{isGift ? 'Gift' : 'Get'} {selectedPlan === 'lifetime' ? 'Lifetime' : selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} Access {withOrderBump ? '+ Journal' : ''}</span>
                             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </button>
 

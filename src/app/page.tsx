@@ -26,6 +26,7 @@ const DailyQuote = dynamic(() => import('@/components/DailyQuote').then(mod => m
 const QuickActions = dynamic(() => import('@/components/QuickActions').then(mod => mod.QuickActions));
 const LoadingSkeleton = dynamic(() => import('@/components/LoadingSkeleton').then(mod => mod.LoadingSkeleton));
 const MobileMenu = dynamic(() => import('@/components/MobileMenu').then(mod => mod.MobileMenu), { ssr: false });
+const LeadMagnet = dynamic(() => import('@/components/LeadMagnet').then(mod => mod.LeadMagnet));
 
 import { AdSense, useLicensing, ExitIntentModal, CrossPromo } from '@/ecosystem-shared';
 import { BrainCircuit } from 'lucide-react';
@@ -101,6 +102,19 @@ export default function Home() {
     const toggleModal = useCallback((key: keyof typeof modals, value: boolean) => {
         setModals(prev => ({ ...prev, [key]: value }));
     }, []);
+
+    const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly' | 'lifetime'>('lifetime');
+
+    useEffect(() => {
+        const handleOpenPremium = (e: any) => {
+            if (e.detail?.plan) {
+                setSelectedPlan(e.detail.plan);
+            }
+            toggleModal('premium', true);
+        };
+        window.addEventListener('open-premium-modal', handleOpenPremium);
+        return () => window.removeEventListener('open-premium-modal', handleOpenPremium);
+    }, [toggleModal]);
 
     // Toast notifications
     const { showToast, ToastComponent } = useToast();
@@ -297,20 +311,46 @@ export default function Home() {
                         </div>
 
                         {/* Social Proof Strip: The Council of Peers */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-white/5 divide-y md:divide-y-0 md:divide-x divide-white/5 bg-slate-950">
-                            <Testimonial
-                                quote="The 'Binary Filter' technique is a tactical manual. I learned how to kill the Red Mist before it spoke."
-                                author="Commander Mark, Sydney"
-                            />
-                            <Testimonial
-                                quote="Marcus Aurelius meets modern neuroscience. This is the absolute game-changer for modern parenting."
-                                author="David, New York"
-                            />
-                            <Testimonial
-                                quote="Tactical, severe, and effective. Reclaim your presence as a father immediately."
-                                author="James, London"
-                            />
-                        </div>
+                        <section className="py-20 border-y border-white/5 bg-slate-950/50 relative">
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-20 bg-gradient-to-b from-amber-500/50 to-transparent" />
+                            <div className="text-center mb-16">
+                                <span className="text-amber-500 font-black tracking-[0.4em] text-[10px] uppercase">Social Proof</span>
+                                <h2 className="text-4xl font-black text-white mt-4 uppercase">The Council of Peers</h2>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <Testimonial
+                                    quote="The 'Binary Filter' technique is a tactical manual. I learned how to kill the Red Mist before it spoke."
+                                    author="Commander Mark, Sydney"
+                                    role="Active Duty Military"
+                                />
+                                <Testimonial
+                                    quote="Marcus Aurelius meets modern neuroscience. This is the absolute game-changer for modern parenting."
+                                    author="Dr. David S., New York"
+                                    role="Clinical Psychologist"
+                                />
+                                <Testimonial
+                                    quote="Tactical, severe, and effective. Reclaim your presence as a father immediately."
+                                    author="James L., London"
+                                    role="Tech Executive"
+                                />
+                                <Testimonial
+                                    quote="It's not just for 'stoics'. It's for any dad who feels like he's losing his grip on the chaos."
+                                    author="Sarah (Wife of Michael), Austin"
+                                    role="Family First"
+                                />
+                                <Testimonial
+                                    quote="I've read all the books. This is the first thing that actually gave me a protocol to follow."
+                                    author="Robert P., Toronto"
+                                    role="Father of 3"
+                                />
+                                <Testimonial
+                                    quote="The AI coach is surprisingly deep. It doesn't just give advice; it challenges your perspective."
+                                    author="Kenji W., Tokyo"
+                                    role="Software Architect"
+                                />
+                            </div>
+                        </section>
 
                         {/* Pricing Table - Hidden for Premium Users */}
                         {!isPremium && <PricingTable />}
@@ -330,24 +370,25 @@ export default function Home() {
                                 </div>
 
                                 <div className="grid gap-4">
-                                    {modules.map((module) => {
-                                        // "Locked" logic: 
-                                        // If !Premium AND id > 1 -> Premium Locked (shows padlock, opens modal)
-                                        // If Premium AND id > highestUnlocked -> Progression Locked (shows padlock, no click or standard logic)
-                                        // Currently ModuleCard handles "isLocked". We'll overload it or pass a custom click.
-
+                                    {modules.map((module, index) => {
                                         const isPremiumLocked = !isPremium && module.id > 3;
                                         const isProgressionLocked = module.id - 1 > unlockedIndex;
 
                                         return (
-                                            <ModuleCard
-                                                key={module.id}
-                                                module={module}
-                                                isActive={module.id - 1 === unlockedIndex && !completedModules.includes(module.id)}
-                                                isCompleted={completedModules.includes(module.id)}
-                                                isLocked={isPremiumLocked || isProgressionLocked}
-                                                onClick={() => handleModuleClick(module)}
-                                            />
+                                            <React.Fragment key={module.id}>
+                                                <ModuleCard
+                                                    module={module}
+                                                    isActive={module.id - 1 === unlockedIndex && !completedModules.includes(module.id)}
+                                                    isCompleted={completedModules.includes(module.id)}
+                                                    isLocked={isPremiumLocked || isProgressionLocked}
+                                                    onClick={() => handleModuleClick(module)}
+                                                />
+                                                {index === 2 && !isPremium && (
+                                                    <div className="my-8">
+                                                        <LeadMagnet />
+                                                    </div>
+                                                )}
+                                            </React.Fragment>
                                         );
                                     })}
                                 </div>
@@ -433,6 +474,7 @@ export default function Home() {
                 isOpen={modals.premium}
                 onClose={() => toggleModal('premium', false)}
                 onUnlock={handleUnlockPremium}
+                initialPlan={selectedPlan}
             />
 
             {!isPremium && <StickyPromo />}
@@ -470,24 +512,27 @@ export default function Home() {
     );
 }
 
-function Testimonial({ quote, author }: { quote: string, author: string }) {
+function Testimonial({ quote, author, role }: { quote: string, author: string, role: string }) {
     return (
-        <div className="bg-slate-950 p-10 flex flex-col justify-between group">
+        <div className="bg-slate-900/40 border border-white/5 p-8 rounded-2xl flex flex-col justify-between group hover:bg-slate-900/60 transition-all">
             <div>
                 <div className="flex gap-1 mb-6">
                     {[1, 2, 3, 4, 5].map(i => (
-                        <div key={i} className="w-1 h-1 bg-amber-500/40" />
+                        <div key={i} className="w-1 h-1 bg-amber-500" />
                     ))}
                 </div>
-                <p className="text-white/60 font-light italic text-lg leading-relaxed mb-8 group-hover:text-white transition-colors">
+                <p className="text-white/80 font-light italic text-base leading-relaxed mb-6">
                     &ldquo;{quote}&rdquo;
                 </p>
             </div>
-            <p className="text-[10px] font-black text-amber-500/60 uppercase tracking-[0.3em]">
-                {author}
-            </p>
+            <div className="flex flex-col">
+                <p className="text-[11px] font-black text-white uppercase tracking-[0.2em]">
+                    {author}
+                </p>
+                <p className="text-[9px] font-black text-amber-500/60 uppercase tracking-[0.2em] mt-1">
+                    {role}
+                </p>
+            </div>
         </div>
     );
 }
-
-

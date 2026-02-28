@@ -16,16 +16,21 @@ export const getStripe = () => {
 
 /**
  * Creates a Stripe Checkout Session
- * This would normally be handled by a Server Action or API Route.
+ * Handles both one-time payments and recurring subscriptions.
  */
-export async function createCheckoutSession(priceId: string) {
+export async function createCheckoutSession(priceId: string, options: { addJournal?: boolean, mode?: 'payment' | 'subscription', giftEmail?: string } = {}) {
     try {
         const response = await fetch('/api/stripe/checkout', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ priceId }),
+            body: JSON.stringify({
+                priceId,
+                addJournal: options.addJournal,
+                mode: options.mode || 'subscription',
+                giftEmail: options.giftEmail
+            }),
         });
 
         const session = await response.json();
