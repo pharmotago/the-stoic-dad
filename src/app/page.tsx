@@ -27,6 +27,7 @@ const QuickActions = dynamic(() => import('@/components/QuickActions').then(mod 
 const LoadingSkeleton = dynamic(() => import('@/components/LoadingSkeleton').then(mod => mod.LoadingSkeleton));
 const MobileMenu = dynamic(() => import('@/components/MobileMenu').then(mod => mod.MobileMenu), { ssr: false });
 const LeadMagnet = dynamic(() => import('@/components/LeadMagnet').then(mod => mod.LeadMagnet));
+const ReferralSection = dynamic(() => import('@/components/ReferralSection').then(mod => mod.ReferralSection), { ssr: false });
 
 import { AdSense, useLicensing, ExitIntentModal, CrossPromo } from '@/ecosystem-shared';
 import { BrainCircuit } from 'lucide-react';
@@ -356,6 +357,9 @@ export default function Home() {
                         {!isPremium && <PricingTable />}
 
                         {/* FAQ */}
+                        <div className="my-20">
+                            <ReferralSection />
+                        </div>
                         <FAQSection />
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-12 border-t border-slate-900/50">
